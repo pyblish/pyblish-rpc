@@ -89,7 +89,7 @@ class RpcService(object):
     def discover(self):
         return formatting.format_plugins(pyblish.api.discover())
 
-    def process(self, plugin, context, instance=None):
+    def process(self, plugin, instance=None):
         """Given JSON objects from client, perform actual processing
 
         Arguments:
@@ -108,8 +108,6 @@ class RpcService(object):
             plugin=plugin_obj,
             context=self._context,
             instance=instance_obj)
-
-        print "Returning: %s" % result.keys()
 
         return formatting.format_result(result)
 
@@ -138,15 +136,17 @@ class RpcService(object):
 
 
 class MockRpcService(RpcService):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, delay=0.1, *args, **kwargs):
         super(MockRpcService, self).__init__(*args, **kwargs)
 
         for plugin in mocking.plugins:
             pyblish.api.register_plugin(plugin)
 
+        self.delay = delay
+
     def process(self, *args, **kwargs):
-        time.sleep(0.1)
-        super(MockRpcService, self).process(*args, **kwargs)
+        time.sleep(self.delay)
+        return super(MockRpcService, self).process(*args, **kwargs)
 
 
 def plugin_from_name(name):

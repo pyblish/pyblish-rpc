@@ -39,18 +39,17 @@ class Controller(object):
 
 if __name__ == '__main__':
     import pyblish_rpc.server
-    # import threading
+    import threading
 
-    # thread = threading.Thread(
-    #     target=pyblish_rpc.server.start_debug_server,
-    #     kwargs={"port": 6000})
-    # thread.daemon = True
-    # thread.start()
+    thread = threading.Thread(
+        target=pyblish_rpc.server.start_debug_server,
+        kwargs={"port": 6000})
+    thread.daemon = True
+    thread.start()
 
     c = Controller(6000)
-    # c.api.process({}, c.api.process, {})
     c.reset()
-    # c.publish()
+    c.publish()
 
     print c.api.context()
     print c.api.stats()

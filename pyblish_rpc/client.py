@@ -36,9 +36,8 @@ class Proxy(object):
         """Any call not overloaded, simply pass it on"""
         return getattr(self._proxy, attr)
 
-    def __init(self, port, user=None, password=None, timeout=0.5):
+    def __init(self, port, user=None, password=None):
         transport = TimeoutTransport()
-        transport.set_timeout(timeout)
 
         self._proxy = xmlrpclib.ServerProxy(
             "http://{auth}127.0.0.1:{port}/pyblish".format(
@@ -52,19 +51,18 @@ class Proxy(object):
     def ping(self):
         """Convert Fault to True/False"""
         try:
+            self.transport.set_timeout(0.1)
             self._proxy.ping()
         except (socket.timeout, socket.error):
             return False
+        finally:
+            self.transport.set_timeout()
         return True
 
     def process(self, plugin, context, instance=None):
-        print plugin, context, instance
-        result = self._proxy.process(
+        return self._proxy.process(
             plugin.to_json(),
-            context.to_json(),
             instance.to_json() if instance else None)
-        print "Result: %s" % result
-        return {"success": True, "error": None}
 
     def repair(self, plugin, context, instance=None):
         return self._proxy.repair(
@@ -96,9 +94,9 @@ class HttpWithTimeout(httplib.HTTP):
 
 
 class TimeoutTransport(xmlrpclib.Transport):
-    timeout = 10
+    timeout = 60 * 60  # 1 hour
 
-    def set_timeout(self, timeout):
+    def set_timeout(self, timeout=60 * 60):
         self.timeout = timeout
 
     def make_connection(self, host):
