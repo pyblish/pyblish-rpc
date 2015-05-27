@@ -66,7 +66,7 @@ class RpcServer(SocketServer.ThreadingMixIn, SimpleXMLRPCServer):
         return True
 
 
-def _serve(port, service):
+def _server(port, service):
     server = RpcServer(
         "/pyblish",
         ("127.0.0.1", port),
@@ -76,8 +76,13 @@ def _serve(port, service):
     server.register_introspection_functions()
     server.register_instance(service, allow_dotted_names=True)
 
+    return server
+
+
+def _serve(port, service):
+    server = _server(port, service)
     print("Listening on %s:%s" % server.server_address)
-    server.serve_forever()
+    return server.serve_forever()
 
 
 def start_production_server(port, service):
