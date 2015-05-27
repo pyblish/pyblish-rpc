@@ -10,8 +10,6 @@ class SelectInstances(pyblish.api.Selector):
 
     """
 
-    hosts = ["python"]
-
     def process_context(self, context):
         self.log.info("Selecting instances..")
 
@@ -45,35 +43,9 @@ class SelectInstancesFailure(pyblish.api.Selector):
 
     """
 
-    hosts = ["python"]
-
     def process_context(self, context):
         self.log.warning("I'm about to fail")
         raise pyblish.api.SelectionError("I was programmed to fail")
-
-
-@pyblish.api.log
-class SelectInstanceAndProcess(pyblish.api.Selector):
-    """Select an instance, and also process it.
-
-    Not sure why this would be necessary, but I'd imagine the need
-    coming up eventually.
-
-    If this plug-in isn't logging information about which instance
-    it processes, something's wrong.
-
-    """
-
-    hosts = ["python"]
-    families = ["napoleon.asset.rig"]
-
-    def process_context(self, context):
-        self.log.info("Selecting additional instance \"Extra1\"")
-        instance = context.create_instance("Extra1")
-        instance.set_data("family", "napoleon.asset.rig")
-
-    def process_instance(self, instance):
-        self.log.info("Processing my own instance: %s" % instance)
 
 
 @pyblish.api.log
@@ -92,7 +64,6 @@ class ValidateNamespace(pyblish.api.Validator):
     """
 
     families = ["napoleon.animation.cache"]
-    hosts = ["*"]
     version = (0, 0, 1)
 
     def process_instance(self, instance):
@@ -109,6 +80,8 @@ But that's how we roll down here. It's got \nnew lines\nas well.
 
 @pyblish.api.log
 class ValidateContext(pyblish.api.Validator):
+    families = ["napoleon.animation.cache"]
+
     def process_context(self, context):
         self.log.info("Processing context..")
 
@@ -116,6 +89,7 @@ class ValidateContext(pyblish.api.Validator):
 @pyblish.api.log
 class ValidateContextFailure(pyblish.api.Validator):
     optional = True
+    families = ["napoleon.animation.cache"]
 
     def process_context(self, context):
         self.log.info("About to fail..")
@@ -129,6 +103,7 @@ and the moon is gray; not yellow. Try again when the moon is yellow.""")
 class Validator1(pyblish.api.Validator):
     """Test of the order attribute"""
     order = pyblish.api.Validator.order + 0.1
+    families = ["napoleon.animation.cache"]
 
     def process_instance(self, instance):
         pass
@@ -137,6 +112,7 @@ class Validator1(pyblish.api.Validator):
 @pyblish.api.log
 class Validator2(pyblish.api.Validator):
     order = pyblish.api.Validator.order + 0.2
+    families = ["napoleon.animation.cache"]
 
     def process_instance(self, instance):
         pass
@@ -145,6 +121,7 @@ class Validator2(pyblish.api.Validator):
 @pyblish.api.log
 class Validator3(pyblish.api.Validator):
     order = pyblish.api.Validator.order + 0.3
+    families = ["napoleon.animation.cache"]
 
     def process_instance(self, instance):
         pass
@@ -153,8 +130,6 @@ class Validator3(pyblish.api.Validator):
 @pyblish.api.log
 class ValidateFailureMock(pyblish.api.Validator):
     """Plug-in that always fails"""
-    families = ["*"]
-    hosts = ["*"]
     version = (0, 0, 1)
     optional = True
     order = pyblish.api.Validator.order + 0.1
@@ -181,15 +156,12 @@ a few newlines and a list.
 @pyblish.api.log
 class ValidateIsIncompatible(pyblish.api.Validator):
     """This plug-in should never appear.."""
-    hosts = ["*"]
-    version = (0, 0, 1)
-    optional = True
+    requires = False  # This is invalid
 
 
 @pyblish.api.log
 class ValidateWithRepair(pyblish.api.Validator):
     """A validator with repair functionality"""
-    hosts = ["*"]
     version = (0, 0, 1)
     optional = True
 
@@ -206,7 +178,6 @@ class ValidateWithRepair(pyblish.api.Validator):
 @pyblish.api.log
 class ValidateWithRepairFailure(pyblish.api.Validator):
     """A validator with repair functionality that fails"""
-    hosts = ["*"]
     version = (0, 0, 1)
     optional = True
 
@@ -225,7 +196,6 @@ class ValidateWithRepairFailure(pyblish.api.Validator):
 @pyblish.api.log
 class ValidateWithRepairContext(pyblish.api.Validator):
     """A validator with repair functionality that fails"""
-    hosts = ["*"]
     version = (0, 0, 1)
     optional = True
 
@@ -250,7 +220,6 @@ class ExtractAsMa(pyblish.api.Extractor):
 
     """
 
-    hosts = ["*"]
     version = (0, 0, 1)
     optional = True
 
@@ -286,6 +255,46 @@ class ConformAsset(pyblish.api.Conformer):
         self.log.info("Conformed Successfully")
 
 
+@pyblish.api.log
+class SelectInstancesDI(pyblish.api.Selector):
+    """Select using Dependency Injection"""
+    families = ["diFamily"]
+
+    def process(self, context):
+        instance = context.create_instance("Dependency Instance")
+        instance.set_data("family", "diFamily")
+        self.log.info("Successfully created Dependency Instance")
+
+
+@pyblish.api.log
+class ValidateInstancesDI(pyblish.api.Validator):
+    """Validate using the DI interface"""
+    families = ["diFamily"]
+
+    def process(self, instance):
+        self.log.info("Validating %s.." % instance.data("name"))
+
+
+@pyblish.api.log
+class ValidateDIWithRepair(pyblish.api.Validator):
+    families = ["diFamily"]
+
+    def process(self, context):
+        assert False, "I was programmed to fail, for repair"
+
+    def repair(self, instance):
+        self.log.info("Repairing %s" % instance.data("name"))
+
+
+@pyblish.api.log
+class ExtractInstancesDI(pyblish.api.Extractor):
+    """Extract using the DI interface"""
+    families = ["diFamily"]
+
+    def process(self, instance):
+        self.log.info("Extracting %s.." % instance.data("name"))
+
+
 instances = [
     "Peter01",
     "Richard05",
@@ -298,7 +307,6 @@ instances = [
 plugins = [
     SelectInstances,
     SelectInstancesFailure,
-    SelectInstanceAndProcess,
     ValidateFailureMock,
     ValidateNamespace,
     ValidateIsIncompatible,
@@ -312,4 +320,9 @@ plugins = [
     ValidateWithRepairContext,
     ExtractAsMa,
     ConformAsset,
+
+    SelectInstancesDI,
+    ValidateInstancesDI,
+    ExtractInstancesDI,
+    ValidateDIWithRepair,
 ]
