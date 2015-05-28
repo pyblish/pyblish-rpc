@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.abspath(package_path))
 
 import nose
 
+
 if __name__ == '__main__':
     argv = sys.argv[:]
     argv.extend(['-c', '.noserc'])

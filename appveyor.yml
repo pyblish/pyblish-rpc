@@ -1,5 +1,8 @@
 install:
-  - pip install git+https://github.com/mottosso/pyblish.git
+  - pushd %homedrive%%homepath%
+  - git clone https://github.com/mottosso/pyblish.git
+  - set PYTHONPATH=%cd%\pyblish
+  - popd
 
 build_script:
   - run_coverage.py

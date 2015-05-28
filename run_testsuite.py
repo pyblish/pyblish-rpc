@@ -3,10 +3,10 @@ import sys
 
 # Expose pyblish-rpc to PYTHONPATH
 path = os.path.dirname(__file__)
-package_path = os.path.join(path, "..", "pyblish_rpc")
+package_path = os.path.join(path, "pyblish_rpc")
 vendor = os.path.join(package_path, "vendor")
-sys.path.insert(0, vendor)
-sys.path.insert(0, package_path)
+sys.path.insert(0, os.path.abspath(vendor))
+sys.path.insert(0, os.path.abspath(package_path))
 
 import nose
 
