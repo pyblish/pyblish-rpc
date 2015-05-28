@@ -239,6 +239,7 @@ def format_plugin(plugin):
     docstring = inspect.getdoc(plugin)
 
     formatted = {
+        "__pre11__": plugin.__pre11__,
         "name": plugin.__name__,
         "id": plugin.id,
         "data": {
@@ -260,7 +261,7 @@ def format_plugin(plugin):
         },
         "repair": {
             "args": inspect.getargspec(plugin.repair).args,
-        }
+        },
     }
 
     try:

@@ -95,7 +95,6 @@ class RpcService(object):
 
         Arguments:
             plugin (dict): JSON representation of plug-in to process
-            context (dict): JSON representation of Context to be processed
             instance (dict, optional): JSON representation of Instance to
                 be processed.
 
@@ -112,7 +111,7 @@ class RpcService(object):
 
         return formatting.format_result(result)
 
-    def repair(self, plugin, context, instance=None):
+    def repair(self, plugin, instance=None):
         plugin_obj = self._plugin_from_name(plugin["name"])
         instance_obj = (self._instances[instance["name"]]
                         if instance is not None else None)

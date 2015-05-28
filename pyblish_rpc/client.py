@@ -50,14 +50,14 @@ class Proxy(object):
         return True
 
     def process(self, plugin, context, instance=None):
-        return self._proxy.process(
-            plugin.to_json(),
-            instance.to_json() if instance else None)
+        plugin = plugin.to_json()
+        instance = instance.to_json() if instance is not None else None
+        return self._proxy.process(plugin, instance)
 
     def repair(self, plugin, context, instance=None):
-        return self._proxy.repair(
-            plugin.to_json(),
-            instance.to_json() if instance else None)
+        plugin = plugin.to_json()
+        instance = instance.to_json() if instance is not None else None
+        return self._proxy.repair(plugin, instance)
 
     def context(self):
         return ContextProxy.from_json(self._proxy.context())
@@ -139,7 +139,7 @@ class InstanceProxy(list):
         copy = instance.copy()
         copy["_data"] = copy.pop("data")
         self.__dict__.update(copy)
-        self[:] = [i for i in instance["children"]]
+        self[:] = instance["children"]
         return self
 
     def to_json(self):

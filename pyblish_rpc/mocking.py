@@ -13,12 +13,25 @@ class SelectInstances(pyblish.api.Selector):
     def process_context(self, context):
         self.log.info("Selecting instances..")
 
-        for name, data in instances.iteritems():
+        for instance in instances[:-1]:
+            name, data = instance["name"], instance["data"]
             self.log.info("Selecting: %s" % name)
             instance = context.create_instance(name)
 
             for key, value in data.iteritems():
                 instance.set_data(key, value)
+
+
+@pyblish.api.log
+class SelectDiInstances(pyblish.api.Selector):
+    """Select DI instances"""
+    def process(self, context):
+        name, data = instances[-1]["name"], instances[-1]["data"]
+        self.log.info("Selecting: %s" % name)
+        instance = context.create_instance(name)
+
+        for key, value in data.iteritems():
+            instance.set_data(key, value)
 
 
 @pyblish.api.log
@@ -31,7 +44,13 @@ class SelectInstancesFailure(pyblish.api.Selector):
 
     def process_context(self, context):
         self.log.warning("I'm about to fail")
-        raise pyblish.api.SelectionError("I was programmed to fail")
+        assert False, "I was programmed to fail"
+
+
+@pyblish.api.log
+class SelectInstances2(pyblish.api.Selector):
+    def process(self, context):
+        self.log.warning("I'm good")
 
 
 @pyblish.api.log
@@ -49,10 +68,9 @@ class ValidateNamespace(pyblish.api.Validator):
 
     """
 
-    families = ["napoleon.animation.cache"]
-    version = (0, 0, 1)
+    families = ["B"]
 
-    def process_instance(self, instance):
+    def process(self, instance):
         self.log.info("Validating the namespace of %s" % instance.data("name"))
         self.log.info("""And here's another message, quite long, in fact it's
 too long to be displayed in a single row of text.
@@ -66,7 +84,7 @@ But that's how we roll down here. It's got \nnew lines\nas well.
 
 @pyblish.api.log
 class ValidateContext(pyblish.api.Validator):
-    families = ["napoleon.animation.cache"]
+    families = ["A", "B"]
 
     def process_context(self, context):
         self.log.info("Processing context..")
@@ -75,21 +93,21 @@ class ValidateContext(pyblish.api.Validator):
 @pyblish.api.log
 class ValidateContextFailure(pyblish.api.Validator):
     optional = True
-    families = ["napoleon.animation.cache"]
+    families = ["C"]
 
     def process_context(self, context):
         self.log.info("About to fail..")
-        raise pyblish.api.ValidationError("""I was programmed to fail
+        assert False, """I was programmed to fail
 
 The reason I failed was because the sun was not aligned with the tides,
-and the moon is gray; not yellow. Try again when the moon is yellow.""")
+and the moon is gray; not yellow. Try again when the moon is yellow."""
 
 
 @pyblish.api.log
 class Validator1(pyblish.api.Validator):
     """Test of the order attribute"""
     order = pyblish.api.Validator.order + 0.1
-    families = ["napoleon.animation.cache"]
+    families = ["A"]
 
     def process_instance(self, instance):
         pass
@@ -98,7 +116,7 @@ class Validator1(pyblish.api.Validator):
 @pyblish.api.log
 class Validator2(pyblish.api.Validator):
     order = pyblish.api.Validator.order + 0.2
-    families = ["napoleon.animation.cache"]
+    families = ["B"]
 
     def process_instance(self, instance):
         pass
@@ -107,7 +125,7 @@ class Validator2(pyblish.api.Validator):
 @pyblish.api.log
 class Validator3(pyblish.api.Validator):
     order = pyblish.api.Validator.order + 0.3
-    families = ["napoleon.animation.cache"]
+    families = ["B"]
 
     def process_instance(self, instance):
         pass
@@ -116,17 +134,16 @@ class Validator3(pyblish.api.Validator):
 @pyblish.api.log
 class ValidateFailureMock(pyblish.api.Validator):
     """Plug-in that always fails"""
-    version = (0, 0, 1)
     optional = True
     order = pyblish.api.Validator.order + 0.1
+    families = ["C"]
 
     def process_instance(self, instance):
-        if instance.name == "Richard05":
-            self.log.debug("e = mc^2")
-            self.log.info("About to fail..")
-            self.log.warning("Failing.. soooon..")
-            self.log.critical("Ok, you're done.")
-            raise ValueError("""ValidateFailureMock was destined to fail..
+        self.log.debug("e = mc^2")
+        self.log.info("About to fail..")
+        self.log.warning("Failing.. soooon..")
+        self.log.critical("Ok, you're done.")
+        assert False, """ValidateFailureMock was destined to fail..
 
 Here's some extended information about what went wrong.
 
@@ -136,7 +153,7 @@ a few newlines and a list.
 - Item 1
 - Item 2
 
-""")
+"""
 
 
 @pyblish.api.log
@@ -148,13 +165,11 @@ class ValidateIsIncompatible(pyblish.api.Validator):
 @pyblish.api.log
 class ValidateWithRepair(pyblish.api.Validator):
     """A validator with repair functionality"""
-    version = (0, 0, 1)
     optional = True
+    families = ["C"]
 
     def process_instance(self, instance):
-        if instance.name == "Richard05":
-            raise pyblish.api.ValidationError(
-                "%s is invalid, try repairing it!" % instance.name)
+        assert False, "%s is invalid, try repairing it!" % instance.name
 
     def repair_instance(self, instance):
         self.log.info("Attempting to repair..")
@@ -164,34 +179,35 @@ class ValidateWithRepair(pyblish.api.Validator):
 @pyblish.api.log
 class ValidateWithRepairFailure(pyblish.api.Validator):
     """A validator with repair functionality that fails"""
-    version = (0, 0, 1)
     optional = True
+    families = ["C"]
 
     def process_instance(self, instance):
-        if instance.name == "Richard05":
-            raise pyblish.api.ValidationError(
-                "%s is invalid, try repairing it!" % instance.name)
+        assert False, "%s is invalid, try repairing it!" % instance.name
 
     def repair_instance(self, instance):
         self.log.info("Attempting to repair..")
+        assert False, "Could not repair due to X"
 
-        if instance.name == "Richard05":
-            raise pyblish.api.ValidationError("Could not repair due to X")
+
+@pyblish.api.log
+class ValidateWithVeryVeryVeryLongLongNaaaaame(pyblish.api.Validator):
+    """A validator with repair functionality that fails"""
+    families = ["A"]
 
 
 @pyblish.api.log
 class ValidateWithRepairContext(pyblish.api.Validator):
     """A validator with repair functionality that fails"""
-    version = (0, 0, 1)
     optional = True
+    families = ["C"]
 
     def process_context(self, context):
-        raise pyblish.api.ValidationError(
-            "Could not validate context, try repairing it")
+        assert False, "Could not validate context, try repairing it"
 
     def repair_context(self, context):
         self.log.info("Attempting to repair..")
-        raise pyblish.api.ValidationError("Could not repair")
+        assert False, "Could not repair"
 
 
 @pyblish.api.log
@@ -206,7 +222,6 @@ class ExtractAsMa(pyblish.api.Extractor):
 
     """
 
-    version = (0, 0, 1)
     optional = True
 
     def process_instance(self, instance):
@@ -242,17 +257,6 @@ class ConformAsset(pyblish.api.Conformer):
 
 
 @pyblish.api.log
-class SelectInstancesDI(pyblish.api.Selector):
-    """Select using Dependency Injection"""
-    families = ["diFamily"]
-
-    def process(self, context):
-        instance = context.create_instance("Dependency Instance")
-        instance.set_data("family", "diFamily")
-        self.log.info("Successfully created Dependency Instance")
-
-
-@pyblish.api.log
 class ValidateInstancesDI(pyblish.api.Validator):
     """Validate using the DI interface"""
     families = ["diFamily"]
@@ -264,6 +268,7 @@ class ValidateInstancesDI(pyblish.api.Validator):
 @pyblish.api.log
 class ValidateDIWithRepair(pyblish.api.Validator):
     families = ["diFamily"]
+    optional = True
 
     def process(self, context):
         assert False, "I was programmed to fail, for repair"
@@ -281,34 +286,61 @@ class ExtractInstancesDI(pyblish.api.Extractor):
         self.log.info("Extracting %s.." % instance.data("name"))
 
 
-instances = {
-    "Peter01": {
-        "family": "napoleon.asset.rig",
-        "publish": False
+instances = [
+    {
+        "name": "Peter01",
+        "data": {
+            "family": "A",
+            "publish": False
+        }
     },
-    "Richard05": {
-        "family": "napoleon.asset.cache",
+    {
+        "name": "Richard05",
+        "data": {
+            "family": "A",
+        }
     },
-    "Steven11": {
-        "family": "napoleon.asset.cache",
+    {
+        "name": "Steven11",
+        "data": {
+            "family": "B",
+        }
     },
-    "Piraya12": {
-        "family": "napoleon.asset.rig",
+    {
+        "name": "Piraya12",
+        "data": {
+            "family": "B",
+        }
     },
-    "Marcus": {
-        "family": "napoleon.asset.rig",
+    {
+        "name": "Marcus",
+        "data": {
+            "family": "C",
+        }
     },
-    "Extra1": {
-        "family": "napoleon.asset.rig",
+    {
+        "name": "Extra1",
+        "data": {
+            "family": "C",
+        }
     },
-}
+    {
+        "name": "DependencyInstance",
+        "data": {
+            "family": "diFamily"
+        }
+    }
+]
 
 plugins = [
     SelectInstances,
+    SelectInstances2,
+    SelectDiInstances,
     SelectInstancesFailure,
     ValidateFailureMock,
     ValidateNamespace,
     ValidateIsIncompatible,
+    ValidateWithVeryVeryVeryLongLongNaaaaame,
     ValidateContext,
     ValidateContextFailure,
     Validator1,
@@ -320,8 +352,9 @@ plugins = [
     ExtractAsMa,
     ConformAsset,
 
-    SelectInstancesDI,
     ValidateInstancesDI,
     ExtractInstancesDI,
     ValidateDIWithRepair,
 ]
+
+pyblish.api.sort_plugins(plugins)
