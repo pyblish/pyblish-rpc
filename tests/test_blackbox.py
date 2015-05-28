@@ -59,8 +59,8 @@ class Controller(object):
                    if p.order < 1]
 
         for result in pyblish.logic.process(
+                func=self.api.process,
                 plugins=plugins,
-                process=self.api.process,
                 context=self.api.context()):
             results.append(result)
         return results
@@ -71,8 +71,8 @@ class Controller(object):
                    if p.order >= 1]
 
         for result in pyblish.logic.process(
+                func=self.api.process,
                 plugins=plugins,
-                process=self.api.process,
                 context=self.api.context()):
 
             if isinstance(result, pyblish.logic.TestFailed):
@@ -179,8 +179,8 @@ def test_logic():
     test_failed = False
 
     for result in pyblish.logic.process(
+            func=proxy.process,
             plugins=proxy.discover,
-            process=proxy.process,
             context=proxy.context):
 
         if isinstance(result, pyblish.logic.TestFailed):

@@ -112,3 +112,7 @@ def test_plugin():
 
     plugin = formatting.format_plugin(MyPlugin)
     schema.validate(plugin, "plugin")
+
+    plugin = MyPlugin()
+    plugin = formatting.format_plugin(MyPlugin)
+    schema.validate(plugin, "plugin")

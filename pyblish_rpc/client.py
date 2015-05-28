@@ -12,7 +12,6 @@ import httplib
 import xmlrpclib
 
 import pyblish.api
-import pyblish.logic
 import pyblish.plugin
 
 

@@ -112,7 +112,7 @@ class RpcService(object):
         return formatting.format_result(result)
 
     def repair(self, plugin, context, instance=None):
-        plugin_obj = plugin_from_name(plugin["name"])
+        plugin_obj = plugin_from_name(plugin["name"])()
         instance_obj = (self._instances[instance["name"]]
                         if instance is not None else None)
 
