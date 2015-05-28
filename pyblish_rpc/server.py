@@ -135,7 +135,3 @@ def start_debug_server(port=6000, delay=0.5):
     pyblish.lib.setup_log("pyblish")
     service = service_.MockRpcService()
     return _serve(port, service)
-
-
-if __name__ == "__main__":
-    _serve()

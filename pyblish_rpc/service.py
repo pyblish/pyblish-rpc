@@ -101,7 +101,7 @@ class RpcService(object):
 
         """
 
-        plugin_obj = plugin_from_name(plugin["name"])
+        plugin_obj = self._plugin_from_name(plugin["name"])
         instance_obj = (self._instances[instance["name"]]
                         if instance is not None else None)
 
@@ -113,7 +113,7 @@ class RpcService(object):
         return formatting.format_result(result)
 
     def repair(self, plugin, context, instance=None):
-        plugin_obj = plugin_from_name(plugin["name"])
+        plugin_obj = self._plugin_from_name(plugin["name"])
         instance_obj = (self._instances[instance["name"]]
                         if instance is not None else None)
 
@@ -135,23 +135,29 @@ class RpcService(object):
             traceback.print_exc()
             raise e
 
+    @classmethod
+    def _plugin_from_name(cls, name):
+        """Parse plug-in id to object"""
+        plugins = pyblish.api.discover()
+        plugins = pyblish.lib.ItemList("__name__", plugins)
+        return plugins[name]
+
 
 class MockRpcService(RpcService):
     def __init__(self, delay=0.01, *args, **kwargs):
         super(MockRpcService, self).__init__(*args, **kwargs)
 
-        for plugin in mocking.plugins:
-            pyblish.api.register_plugin(plugin)
-
         self.delay = delay
+
+    def discover(self):
+        return formatting.format_plugins(mocking.plugins)
 
     def process(self, *args, **kwargs):
         time.sleep(self.delay)
         return super(MockRpcService, self).process(*args, **kwargs)
 
-
-def plugin_from_name(name):
-    """Parse plug-in id to object"""
-    plugins = pyblish.api.discover()
-    plugins = pyblish.lib.ItemList("__name__", plugins)
-    return plugins[name]
+    @classmethod
+    def _plugin_from_name(cls, name):
+        """Parse plug-in id to object"""
+        plugins = pyblish.lib.ItemList("__name__", mocking.plugins)
+        return plugins[name]

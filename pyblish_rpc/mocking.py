@@ -13,26 +13,12 @@ class SelectInstances(pyblish.api.Selector):
     def process_context(self, context):
         self.log.info("Selecting instances..")
 
-        for name in instances:
-            instance = context.create_instance(name=name)
-
+        for name, data in instances.iteritems():
             self.log.info("Selecting: %s" % name)
+            instance = context.create_instance(name)
 
-            instance._data = {
-                "publish": True,
-                "family": "napoleon.animation.cache",
-                "identifier": "napoleon.instance",
-                "minWidth": 800,
-                "assetSource": "/server/assets/Peter",
-                "destination": "/server/published/assets",
-            }
-
-            if name == "Peter01":
-                instance.set_data("publish", False)
-                instance.set_data("family", "napoleon.asset.rig")
-
-            for node in ["node1", "node2", "node3"]:
-                instance.append(node)
+            for key, value in data.iteritems():
+                instance.set_data(key, value)
 
 
 @pyblish.api.log
@@ -295,14 +281,27 @@ class ExtractInstancesDI(pyblish.api.Extractor):
         self.log.info("Extracting %s.." % instance.data("name"))
 
 
-instances = [
-    "Peter01",
-    "Richard05",
-    "Steven11",
-    "Piraya12",
-    "Marcus",
-    "Extra1"
-]
+instances = {
+    "Peter01": {
+        "family": "napoleon.asset.rig",
+        "publish": False
+    },
+    "Richard05": {
+        "family": "napoleon.asset.cache",
+    },
+    "Steven11": {
+        "family": "napoleon.asset.cache",
+    },
+    "Piraya12": {
+        "family": "napoleon.asset.rig",
+    },
+    "Marcus": {
+        "family": "napoleon.asset.rig",
+    },
+    "Extra1": {
+        "family": "napoleon.asset.rig",
+    },
+}
 
 plugins = [
     SelectInstances,

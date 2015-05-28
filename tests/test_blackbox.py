@@ -23,11 +23,10 @@ def setup():
     import pyblish_rpc.server
     import pyblish_rpc.service
 
-    service = pyblish_rpc.service.MockRpcService(delay=0.001)
+    service = pyblish_rpc.service.RpcService()
     self.server = pyblish_rpc.server._server(self.port, service)
 
     self.thread = threading.Thread(target=self.server.serve_forever)
-
     self.thread.daemon = True
     self.thread.start()
 
