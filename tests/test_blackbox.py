@@ -114,8 +114,8 @@ def test_mock_client():
     c.reset()
 
     plugins = c.api.discover()
-    assert_in("SelectInstances", [p.name for p in plugins])
-    assert_in("ValidateInstances", [p.name for p in plugins])
+    assert "SelectInstances" in [p.name for p in plugins]
+    assert "ValidateInstances" in [p.name for p in plugins]
 
     c.publish()
 
@@ -193,7 +193,7 @@ def test_logic():
             break
 
     context = proxy.context()
-    assert_in(context[0].name, ["A", "B"])
-    assert_in(context[1].name, ["A", "B"])
+    assert context[0].name in ["A", "B"]
+    assert context[1].name in ["A", "B"]
     assert_equals(count["#"], 3)
     assert_true(test_failed)
