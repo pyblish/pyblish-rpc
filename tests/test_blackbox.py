@@ -197,3 +197,54 @@ def test_logic():
     assert context[1].name in ["A", "B"]
     assert_equals(count["#"], 3)
     assert_true(test_failed)
+
+
+@with_setup(setup_empty)
+def test_repair():
+    """Repairing with DI works well"""
+
+    _data = {}
+
+    class SelectInstance(pyblish.api.Selector):
+        def process(self, context):
+            instance = context.create_instance("MyInstance")
+            instance.set_data("family", "MyFamily")
+
+    class ValidateInstance(pyblish.api.Validator):
+        def process(self, instance):
+            _data["broken"] = True
+            assert False, "Broken"
+
+        def repair(self, instance):
+            _data["broken"] = False
+
+    for plugin in (SelectInstance, ValidateInstance):
+        pyblish.api.register_plugin(plugin)
+
+    proxy = pyblish_rpc.client.Proxy(port)
+
+    results = list()
+    for result in pyblish.logic.process(
+            func=proxy.process,
+            plugins=proxy.discover,
+            context=proxy.context):
+
+        if isinstance(result, pyblish.logic.TestFailed):
+            assert str(result) == "Broken"
+
+        results.append(result)
+
+    assert_true(_data["broken"])
+
+    repair = list()
+    for result in results:
+        if result["error"]:
+            repair.append(result["plugin"])
+
+    for result in pyblish.logic.process(
+            func=proxy.repair,
+            plugins=proxy.discover,
+            context=proxy.context):
+        print result
+
+    assert_false(_data["broken"])

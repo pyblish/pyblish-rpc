@@ -11,7 +11,8 @@ import traceback
 
 # Pyblish Library
 import pyblish.api
-import pyblish.util
+import pyblish.lib
+import pyblish.plugin
 
 # Local Library
 import version
@@ -77,7 +78,7 @@ class RpcService(object):
         for key, value in {"host": name,
                            "port": int(port),
                            "user": getpass.getuser(),
-                           "connectTime": pyblish.util.time(),
+                           "connectTime": pyblish.lib.time(),
                            "pyblishServerVersion": pyblish.version,
                            "clientVersion": version.version,
                            "pythonVersion": sys.version}.iteritems():
@@ -104,7 +105,7 @@ class RpcService(object):
         instance_obj = (self._instances[instance["name"]]
                         if instance is not None else None)
 
-        result = pyblish.util.process(
+        result = pyblish.plugin.process(
             plugin=plugin_obj,
             context=self._context,
             instance=instance_obj)
@@ -112,11 +113,11 @@ class RpcService(object):
         return formatting.format_result(result)
 
     def repair(self, plugin, context, instance=None):
-        plugin_obj = plugin_from_name(plugin["name"])()
+        plugin_obj = plugin_from_name(plugin["name"])
         instance_obj = (self._instances[instance["name"]]
                         if instance is not None else None)
 
-        result = pyblish.util.repair(
+        result = pyblish.plugin.repair(
             plugin=plugin_obj,
             context=self._context,
             instance=instance_obj)
