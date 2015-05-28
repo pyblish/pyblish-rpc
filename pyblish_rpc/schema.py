@@ -1,7 +1,7 @@
 """JSON Schema utilities
 
 Attributes:
-    _cache: Cache of previously loaded schemas
+    cache: Cache of previously loaded schemas
 
 Resources:
     http://json-schema.org/
@@ -15,55 +15,35 @@ import json
 
 from vendor import jsonschema
 
-_cache = {}
+cache = {}
 module_dir = os.path.dirname(__file__)
 schema_dir = os.path.join(module_dir, "schema")
 
 
-def load(schema):
-    if schema not in _cache:
-        path = os.path.join(module_dir, "schema",
-                            "%s.json" % schema)
-        with open(path, "r") as f:
-            _cache[schema] = f.read()
-
-    return json.loads(_cache[schema])
+def load_all():
+    for schema in os.listdir(schema_dir):
+        if schema.startswith("_"):
+            continue
+        with open(os.path.join(schema_dir, schema)) as f:
+            cache[schema] = json.load(f)
 
 
 def validate(data, schema):
     if isinstance(schema, basestring):
-        schema = load(schema)
+        schema = cache[schema + ".json"]
 
-    base_uri = "file:///%s/" % schema_dir.replace("\\", "/")
-    resolver = jsonschema.RefResolver(base_uri, None, cache_remote=True)
+    resolver = jsonschema.RefResolver(
+        "",
+        None,
+        store=cache,
+        cache_remote=True)
     return jsonschema.validate(data, schema, types={"array": (list, tuple)},
                                resolver=resolver)
 
 
 ValidationError = jsonschema.ValidationError
 
+load_all()
+
 __all__ = ["validate",
            "ValidationError"]
-
-
-if __name__ == '__main__':
-    data = {
-        "success": True,
-        "instance": {
-            "name": "MyName",
-            "data": {
-                "family": "MyFamily"
-            }
-        },
-        "plugin": {
-            "name": "string",
-            "data": {
-                "families": ["family"]
-            }
-        },
-        "error": {
-            "message": "My message"
-        }
-    }
-
-    validate(data, "result")
