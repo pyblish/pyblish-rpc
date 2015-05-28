@@ -1,0 +1,9 @@
+[run]
+source = pyblish
+
+[report]
+include = *pyblish_rpc*
+omit = 
+    */vendor*
+    */tests*
+    */run_*

@@ -1,0 +1,5 @@
+install:
+  - pip install git+https://github.com/mottosso/pyblish.git
+
+build_script:
+  - run_coverage.py

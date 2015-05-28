@@ -2,9 +2,8 @@ import os
 import sys
 import json
 import logging
+import inspect
 import traceback
-
-import pyblish.plugin
 
 import schema
 
@@ -236,9 +235,8 @@ def format_plugin(plugin):
 
     """
 
-    assert issubclass(plugin, pyblish.plugin.Plugin)
-
-    docstring = getattr(plugin, "doc", plugin.__doc__)
+    # docstring = getattr(plugin, "doc", plugin.__doc__)
+    docstring = inspect.getdoc(plugin)
 
     formatted = {
         "name": plugin.__name__,
@@ -256,10 +254,12 @@ def format_plugin(plugin):
             "families": [],
             "type": None,
             "module": None,
-            "canProcessContext": False,
-            "canProcessInstance": False,
-            "canRepairInstance": False,
-            "canRepairContext": False
+        },
+        "process": {
+            "args": inspect.getargspec(plugin.process).args,
+        },
+        "repair": {
+            "args": inspect.getargspec(plugin.repair).args,
         }
     }
 
@@ -290,25 +290,13 @@ def format_plugin(plugin):
         if hasattr(plugin, attr):
             formatted["data"][attr] = getattr(plugin, attr)
 
-    if "context" in pyblish.plugin.Provider.args(plugin.process):
-        formatted["data"]["canProcessContext"] = True
-
-    if "instance" in pyblish.plugin.Provider.args(plugin.process):
-        formatted["data"]["canProcessInstance"] = True
-
-    # Legacy abilities
-    if hasattr(plugin, "process_context"):
-        formatted["data"]["canProcessContext"] = True
-
-    if hasattr(plugin, "process_instance"):
-        formatted["data"]["canProcessInstance"] = True
-
-    if hasattr(plugin, "repair_instance"):
-        formatted["data"]["canRepairInstance"] = True
+    if any(a in ("context", "instance")
+           for a in inspect.getargspec(plugin.repair).args):
         formatted["data"]["hasRepair"] = True
 
-    if hasattr(plugin, "repair_context"):
-        formatted["data"]["canRepairContext"] = True
+    # Legacy abilities
+    if any(func in ("repair_context", "repair_instance")
+            for func in dir(plugin)):
         formatted["data"]["hasRepair"] = True
 
     schema.validate(formatted, "plugin")

@@ -9,6 +9,28 @@
             "description": "",
             "type": "string"
         },
+        "process": {
+            "type": "object",
+
+            "properties": {
+                "args": {
+                    "description": "Argument signature of process()",
+                    "type": "array",
+                    "items": {"type": "string"}
+                }
+            }
+        },
+        "repair": {
+            "type": "object",
+
+            "properties": {
+                "args": {
+                    "description": "Argument signature of repair()",
+                    "type": "array",
+                    "items": {"type": "string"}
+                }
+            }
+        },
         "data": {
             "type": "object",
 

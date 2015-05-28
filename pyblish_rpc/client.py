@@ -12,6 +12,8 @@ import httplib
 import xmlrpclib
 
 import pyblish.api
+import pyblish.logic
+import pyblish.plugin
 
 
 class Proxy(object):
@@ -20,23 +22,15 @@ class Proxy(object):
     The proxy mirrors the remote interface to provide an
     as-similar experience as possible.
 
-    ..note:: This is a singleton.
-
     """
 
     _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(Proxy, cls).__new__(cls)
-            cls._instance.__init(*args, **kwargs)
-        return cls._instance
 
     def __getattr__(self, attr):
         """Any call not overloaded, simply pass it on"""
         return getattr(self._proxy, attr)
 
-    def __init(self, port, user=None, password=None):
+    def __init__(self, port, user=None, password=None):
         transport = TimeoutTransport()
 
         self._proxy = xmlrpclib.ServerProxy(
@@ -51,12 +45,9 @@ class Proxy(object):
     def ping(self):
         """Convert Fault to True/False"""
         try:
-            self.transport.set_timeout(0.1)
             self._proxy.ping()
         except (socket.timeout, socket.error):
             return False
-        finally:
-            self.transport.set_timeout()
         return True
 
     def process(self, plugin, context, instance=None):
@@ -67,17 +58,23 @@ class Proxy(object):
     def repair(self, plugin, context, instance=None):
         return self._proxy.repair(
             plugin.to_json(),
-            context.to_json(),
             instance.to_json() if instance else None)
 
     def context(self):
-        context = ContextProxy.from_json(self._proxy.context())
-        return context
+        return ContextProxy.from_json(self._proxy.context())
 
     def discover(self):
-        plugins = [PluginProxy.from_json(plugin)
-                   for plugin in self._proxy.discover()]
-        return plugins
+        return [PluginProxy.from_json(plugin)
+                for plugin in self._proxy.discover()]
+
+
+class TimeoutTransport(xmlrpclib.Transport):
+    """Some requests may take a very long time, and that is ok"""
+    timeout = 60 * 60  # 1 hour
+
+    def make_connection(self, host):
+        h = HttpWithTimeout(host, timeout=self.timeout)
+        return h
 
 
 class HttpWithTimeout(httplib.HTTP):
@@ -91,17 +88,6 @@ class HttpWithTimeout(httplib.HTTP):
 
     def getresponse(self, *args, **kw):
         return self._conn.getresponse(*args, **kw)
-
-
-class TimeoutTransport(xmlrpclib.Transport):
-    timeout = 60 * 60  # 1 hour
-
-    def set_timeout(self, timeout=60 * 60):
-        self.timeout = timeout
-
-    def make_connection(self, host):
-        h = HttpWithTimeout(host, timeout=self.timeout)
-        return h
 
 
 # Object Proxies
@@ -135,7 +121,7 @@ class ContextProxy(list):
         self._data[key] = value
 
 
-class InstanceProxy(object):
+class InstanceProxy(list):
     """Instance Proxy
 
     Given a JSON-representation of an Instance, emulate its interface.
@@ -149,11 +135,12 @@ class InstanceProxy(object):
         return u"%s.%s(%r)" % (__name__, type(self).__name__, self.__str__())
 
     @classmethod
-    def from_json(cls, json):
+    def from_json(cls, instance):
         self = cls()
-        copy = json.copy()
+        copy = instance.copy()
         copy["_data"] = copy.pop("data")
         self.__dict__.update(copy)
+        self[:] = [i for i in instance["children"]]
         return self
 
     def to_json(self):
@@ -161,7 +148,7 @@ class InstanceProxy(object):
             "name": self.name,
             "id": self.id,
             "data": self._data,
-            "children": self.children,
+            "children": list(self),
         }
 
     def data(self, key, default=None):
@@ -191,17 +178,33 @@ class PluginProxy(object):
 
         """
 
-        attributes = {
-            "order": plugin["data"]["order"],
-            "families": plugin["data"]["families"],
-            "optional": plugin["data"]["optional"],
-        }
+        process = None
+        repair = None
+
+        # Emulate function
+        for name in ("process", "repair"):
+            args = ", ".join(plugin["process"]["args"])
+            func = "def {name}({args}): pass".format(name=name,
+                                                     args=args)
+            exec(func)
 
         name = plugin["name"] + "Proxy"
-        self = type(name, (cls,), attributes)()
-        self.__dict__.update(plugin)
+        cls = type(name, (cls,), plugin)
 
-        return self
+        for member in ("order",
+                       "families",
+                       "optional",
+                       "requires",
+                       "version"):
+            setattr(cls, member, cls.data[member])
 
-    def to_json(self):
-        return self.__dict__.copy()
+        cls.process = process
+        cls.repair = repair
+
+        cls.__orig__ = plugin
+
+        return cls
+
+    @classmethod
+    def to_json(cls):
+        return cls.__orig__.copy()

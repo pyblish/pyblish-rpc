@@ -136,7 +136,7 @@ class RpcService(object):
 
 
 class MockRpcService(RpcService):
-    def __init__(self, delay=0.1, *args, **kwargs):
+    def __init__(self, delay=0.01, *args, **kwargs):
         super(MockRpcService, self).__init__(*args, **kwargs)
 
         for plugin in mocking.plugins:
