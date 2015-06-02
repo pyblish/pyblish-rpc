@@ -12,5 +12,3 @@ script:
   - python run_coverage.py
 after_success:
   - coveralls
-  on:
-    python: 2.7
