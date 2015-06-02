@@ -3,6 +3,7 @@ python:
   - 2.6
   - 2.7
 install:
+  - pip install coveralls
   - pushd ~
   - git clone https://github.com/mottosso/pyblish.git
   - export PYTHONPATH=${PWD}/pyblish
@@ -11,3 +12,5 @@ script:
   - python run_coverage.py
 after_success:
   - coveralls
+  on:
+    python: 2.7
