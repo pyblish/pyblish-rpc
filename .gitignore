@@ -1,7 +1,3 @@
-.idea
-*.egg-info
-dist
 *.pyc
 cover
 .coverage
-build

@@ -13,7 +13,7 @@ Resources:
 import os
 import json
 
-from vendor import jsonschema
+import jsonschema
 
 cache = {}
 module_dir = os.path.dirname(__file__)

@@ -230,48 +230,20 @@ def format_plugin(plugin):
         hasCompatible: Does the plug-in have any compatible instances?
         type: Which baseclass does the plug-in stem from? E.g. Validator
         module: File in which plug-in was defined
-        canProcessContext: Does it process the Context?
-        canProcessInstance: Does it process the Instance(s)?
+        contextEnabled: Does it process the Context?
+        instanceEnabled: Does it process Instance(s)?
 
     """
 
-    # docstring = getattr(plugin, "doc", plugin.__doc__)
-    docstring = inspect.getdoc(plugin)
-
-    formatted = {
-        "__pre11__": plugin.__pre11__,
-        "name": plugin.__name__,
-        "id": plugin.id,
-        "data": {
-            "version": plugin.version,
-            "category": getattr(plugin, "category", None),
-            "requires": plugin.requires,
-            "order": plugin.order,
-            "optional": plugin.optional,
-            "doc": docstring,
-            "hasRepair": False,
-            "hasCompatible": False,
-            "hosts": [],
-            "families": [],
-            "type": None,
-            "module": None,
-        },
-        "process": {
-            "args": inspect.getargspec(plugin.process).args,
-        },
-        "repair": {
-            "args": inspect.getargspec(plugin.repair).args,
-        },
-    }
-
     try:
         # The MRO is as follows: (-1)object, (-2)Plugin, (-3)Selector..
-        formatted["data"]["type"] = plugin.__mro__[-3].__name__
+        type = plugin.__mro__[-3].__name__
     except IndexError:
         # Plug-in was not subclasses from any of the
         # provided superclasses of pyblish.api. This
         # is either a bug or some (very) custom behavior
         # on the users part.
+        type = None
         log.critical("This is a bug")
 
     try:
@@ -282,24 +254,71 @@ def format_plugin(plugin):
             module = sys.modules[plugin.__module__]
             path = os.path.abspath(module.__file__)
 
-        formatted["data"]["module"] = path
+        module = path
 
     except IndexError:
         pass
 
-    for attr in ("hosts", "families"):
-        if hasattr(plugin, attr):
-            formatted["data"][attr] = getattr(plugin, attr)
+    has_repair = False
 
-    if any(a in ("context", "instance")
-           for a in inspect.getargspec(plugin.repair).args):
-        formatted["data"]["hasRepair"] = True
+    args = inspect.getargspec(plugin.repair).args
+    if "context" in args or "instance" in args:
+        has_repair = True
 
     # Legacy abilities
-    if any(func in ("repair_context", "repair_instance")
-            for func in dir(plugin)):
-        formatted["data"]["hasRepair"] = True
+    if hasattr(plugin, "repair_context") or hasattr(plugin, "repair_instance"):
+        has_repair = True
 
-    schema.validate(formatted, "plugin")
+    output = {
+        "label": plugin.label,
+        "id": plugin.id,
+        "version": plugin.version,
+        "category": getattr(plugin, "category", None),
+        "requires": plugin.requires,
+        "order": plugin.order,
+        "optional": plugin.optional,
+        "hosts": plugin.hosts,
+        "families": plugin.families,
+        "doc": inspect.getdoc(plugin),
 
-    return formatted
+        # Metadata
+        "__pre11__": plugin.__pre11__,
+        "__contextEnabled__": plugin.__contextEnabled__,
+        "__instanceEnabled__": plugin.__instanceEnabled__,
+
+        "pre11": plugin.__pre11__,
+        "contextEnabled": plugin.__contextEnabled__,
+        "instanceEnabled": plugin.__instanceEnabled__,
+        "name": plugin.__name__,
+        "type": type,
+        "module": module,
+        "hasRepair": has_repair,
+        "process": {
+            "args": inspect.getargspec(plugin.process).args,
+        },
+        "repair": {
+            "args": inspect.getargspec(plugin.repair).args,
+        },
+
+        # Public members
+        "__all__": [
+            "pre11",
+            "name",
+            "label",
+            "optional",
+            "category",
+            "id",
+            "order",
+            "doc",
+            "type",
+            "module",
+            "hasRepair",
+            "families",
+            "contextEnabled",
+            "instanceEnabled",
+        ]
+    }
+
+    schema.validate(output, "plugin")
+
+    return output

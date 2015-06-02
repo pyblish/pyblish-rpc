@@ -1,29 +1,12 @@
-import os
-import sys
 import logging
+
 from nose.tools import *
 
 import pyblish.api
-from pyblish_rpc import (
-    schema,
-    formatting
-)
+from pyblish_rpc import schema
+from pyblish_rpc import formatting
 
 
-_vendor_dir = os.path.dirname(schema.__file__)
-_vendor_dir = os.path.join(_vendor_dir, "vendor")
-
-
-def setup():
-    print "adding %s" % _vendor_dir
-    sys.path.insert(0, _vendor_dir)
-
-
-def teardown():
-    sys.path.remove(_vendor_dir)
-
-
-@with_setup(setup, teardown)
 def test_instance():
     """Formatting of instances works fine"""
     instance = pyblish.api.Instance("MyInstance")

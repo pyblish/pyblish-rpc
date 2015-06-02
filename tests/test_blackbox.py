@@ -3,11 +3,11 @@
 import sys
 import threading
 
-import pyblish_rpc.server
 import pyblish_rpc.client
-import pyblish.logic
+import pyblish_rpc.server
 
 import pyblish.api
+import pyblish.logic
 
 from nose.tools import *
 
@@ -20,6 +20,7 @@ self = sys.modules[__name__]
 
 
 def setup():
+    """Create and start module-level server"""
     import pyblish_rpc.server
     import pyblish_rpc.service
 
@@ -34,12 +35,14 @@ def setup():
 
 
 def teardown():
+    """Shutdown module-level server"""
     self.server.shutdown()
     self.thread.join(timeout=10)
     assert not thread.isAlive()
 
 
 def setup_empty():
+    """Clear Pyblish of all possible external stimuli"""
     pyblish.api.config["paths"][:] = []
     pyblish.api.deregister_all_paths()
     pyblish.api.deregister_all_plugins()
@@ -49,6 +52,7 @@ def setup_empty():
 
 
 class Controller(object):
+    """A minimal Pyblish QML controller"""
     def __init__(self, port):
         self.api = pyblish_rpc.client.Proxy(port)
 
@@ -121,6 +125,14 @@ def test_mock_client():
     instance = c.api.context()[0]
     assert_equals(instance.name, "MyInstance")
     assert_equals(count["#"], 2)
+    assert_true(c.api.stats()["totalRequestCount"] > 0)
+
+
+def test_ping():
+    """Pinging server works well"""
+    proxy = pyblish_rpc.client.Proxy(port)
+    message = proxy.ping()
+    assert_true(message)
 
 
 @with_setup(setup_empty)
@@ -244,6 +256,6 @@ def test_repair():
             func=proxy.repair,
             plugins=proxy.discover,
             context=proxy.context):
-        print result
+        pass
 
     assert_false(_data["broken"])

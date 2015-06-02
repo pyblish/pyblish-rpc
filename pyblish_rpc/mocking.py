@@ -25,6 +25,9 @@ class SelectInstances(pyblish.api.Selector):
 @pyblish.api.log
 class SelectDiInstances(pyblish.api.Selector):
     """Select DI instances"""
+
+    name = "Select Dependency Instances"
+
     def process(self, context):
         name, data = instances[-1]["name"], instances[-1]["data"]
         self.log.info("Selecting: %s" % name)
@@ -41,6 +44,8 @@ class SelectInstancesFailure(pyblish.api.Selector):
     That's right. I'm programmed to fail. Try me.
 
     """
+
+    __fail__ = True
 
     def process_context(self, context):
         self.log.warning("I'm about to fail")
@@ -94,6 +99,7 @@ class ValidateContext(pyblish.api.Validator):
 class ValidateContextFailure(pyblish.api.Validator):
     optional = True
     families = ["C"]
+    __fail__ = True
 
     def process_context(self, context):
         self.log.info("About to fail..")
@@ -137,6 +143,7 @@ class ValidateFailureMock(pyblish.api.Validator):
     optional = True
     order = pyblish.api.Validator.order + 0.1
     families = ["C"]
+    __fail__ = True
 
     def process_instance(self, instance):
         self.log.debug("e = mc^2")
@@ -167,6 +174,7 @@ class ValidateWithRepair(pyblish.api.Validator):
     """A validator with repair functionality"""
     optional = True
     families = ["C"]
+    __fail__ = True
 
     def process_instance(self, instance):
         assert False, "%s is invalid, try repairing it!" % instance.name
@@ -181,6 +189,7 @@ class ValidateWithRepairFailure(pyblish.api.Validator):
     """A validator with repair functionality that fails"""
     optional = True
     families = ["C"]
+    __fail__ = True
 
     def process_instance(self, instance):
         assert False, "%s is invalid, try repairing it!" % instance.name
@@ -201,6 +210,7 @@ class ValidateWithRepairContext(pyblish.api.Validator):
     """A validator with repair functionality that fails"""
     optional = True
     families = ["C"]
+    __fail__ = True
 
     def process_context(self, context):
         assert False, "Could not validate context, try repairing it"
@@ -223,6 +233,9 @@ class ExtractAsMa(pyblish.api.Extractor):
     """
 
     optional = True
+    __expected__ = {
+        "logCount": ">=4"
+    }
 
     def process_instance(self, instance):
         self.log.info("About to extract scene to .ma..")
@@ -269,8 +282,9 @@ class ValidateInstancesDI(pyblish.api.Validator):
 class ValidateDIWithRepair(pyblish.api.Validator):
     families = ["diFamily"]
     optional = True
+    __fail__ = True
 
-    def process(self, context):
+    def process(self, instance):
         assert False, "I was programmed to fail, for repair"
 
     def repair(self, instance):
@@ -284,6 +298,19 @@ class ExtractInstancesDI(pyblish.api.Extractor):
 
     def process(self, instance):
         self.log.info("Extracting %s.." % instance.data("name"))
+
+
+@pyblish.api.log
+class ValidateWithLabel(pyblish.api.Validator):
+    """Validate using the DI interface"""
+    label = "Validate with Label"
+
+
+@pyblish.api.log
+class ValidateWithLongLabel(pyblish.api.Validator):
+    """Validate using the DI interface"""
+    label = "Validate with Loooooooooooooooooooooong Label"
+
 
 
 instances = [
@@ -349,6 +376,8 @@ plugins = [
     ValidateWithRepair,
     ValidateWithRepairFailure,
     ValidateWithRepairContext,
+    ValidateWithLabel,
+    ValidateWithLongLabel,
     ExtractAsMa,
     ConformAsset,
 

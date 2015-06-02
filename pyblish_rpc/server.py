@@ -7,6 +7,7 @@ Attributes:
 """
 
 
+import sys
 # import base64
 import threading
 import SocketServer
@@ -19,9 +20,15 @@ import pyblish.api
 import pyblish.lib
 import pyblish.logic
 
+import pyblish_rpc
 import service as service_
 
-current_server_thread = None
+self = sys.modules[__name__]
+self.current_server_thread = None
+
+
+def default_wrapper(func, *args, **kwargs):
+    return func(*args, **kwargs)
 
 
 class RpcServer(SocketServer.ThreadingMixIn, SimpleXMLRPCServer):
@@ -65,6 +72,11 @@ class RpcServer(SocketServer.ThreadingMixIn, SimpleXMLRPCServer):
         # assert password == "pass"
         return True
 
+    def _dispatch(self, *args):
+        wrapper = pyblish_rpc.dispatch_wrapper() or default_wrapper
+        return wrapper(SimpleXMLRPCServer._dispatch,
+                       self, *args)
+
 
 def _server(port, service):
     server = RpcServer(
@@ -79,13 +91,16 @@ def _server(port, service):
     return server
 
 
-def _serve(port, service):
+def _serve(port, service=None):
+    if service is None:
+        service = service_.RpcService()
+
     server = _server(port, service)
     print("Listening on %s:%s" % server.server_address)
     return server.serve_forever()
 
 
-def start_production_server(port, service):
+def start_production_server(port, service=None):
     """Run server with optimisations
 
     Arguments:
@@ -97,7 +112,7 @@ def start_production_server(port, service):
     return _serve(port, service)
 
 
-def start_async_production_server(port, service):
+def start_async_production_server(port, service=None):
     """Start a threaded version of production server
 
     Returns Thread object.
@@ -105,14 +120,13 @@ def start_async_production_server(port, service):
     """
 
     def worker():
-        start_production_server(port, service, threaded=True)
+        start_production_server(port, service)
 
     thread = threading.Thread(target=worker)
     thread.daemon = True
     thread.start()
 
-    global current_server_thread
-    current_server_thread = thread
+    self.current_server_thread = thread
 
     return thread
 

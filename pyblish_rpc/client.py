@@ -189,14 +189,6 @@ class PluginProxy(object):
 
         name = plugin["name"] + "Proxy"
         cls = type(name, (cls,), plugin)
-
-        for member in ("order",
-                       "families",
-                       "optional",
-                       "requires",
-                       "version"):
-            setattr(cls, member, cls.data[member])
-
         cls.process = process
         cls.repair = repair
 

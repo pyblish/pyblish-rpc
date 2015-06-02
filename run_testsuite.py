@@ -2,16 +2,23 @@ import os
 import sys
 
 # Expose pyblish-rpc to PYTHONPATH
-path = os.path.dirname(__file__)
-package_path = os.path.join(path, "pyblish_rpc")
-vendor = os.path.join(package_path, "vendor")
-sys.path.insert(0, os.path.abspath(vendor))
-sys.path.insert(0, os.path.abspath(package_path))
+test_path = os.path.realpath(__file__)
+repo_dir = os.path.dirname(test_path)
+package_path = os.path.join(repo_dir, "pyblish_rpc")
+sys.path.insert(0, package_path)
+
+import pyblish_rpc
+pyblish_rpc.register_vendor_packages()
 
 import nose
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     argv = sys.argv[:]
-    argv.extend(['--exclude=vendor', '--with-doctest', '--verbose'])
+    argv.extend([
+        "tests",
+        "pyblish_rpc",
+        "--exclude=vendor",
+        "--with-doctest",
+        "--verbose"])
     nose.main(argv=argv)

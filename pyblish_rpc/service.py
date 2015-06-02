@@ -19,7 +19,6 @@ import version
 import mocking
 import formatting
 
-_request_queue = Queue.Queue()
 _log = logging.getLogger("pyblish-rpc")
 
 
@@ -46,22 +45,6 @@ class RpcService(object):
         return {
             "totalRequestCount": self._count,
         }
-
-    def push(self):
-        """An incoming push request"""
-        try:
-            message = _request_queue.get(timeout=1)
-        except Queue.Empty:
-            return "heartbeat"
-
-        try:
-            json.dumps(message)
-        except:
-            _log.warning("Could not send request; %s is not JSON-serialisable"
-                         % message)
-            return None
-
-        return message
 
     def reset(self):
         self._context = pyblish.api.Context()
