@@ -153,31 +153,36 @@ def test_logic():
             count["#"] += 1
 
     class RunTwice(pyblish.api.Validator):
+        """This supports the family of both instances"""
         families = ["myFamily"]
 
         def process(self, instance):
             print("Processing: %s" % type(self).__name__)
-            count["#"] += 1
+            count["#"] += 10
+
             assert False, "I was programmed to fail"
 
     class DontRun1(pyblish.api.Validator):
+        """This isn't run, because of an unsupported family"""
         families = ["unsupportedFamily"]
 
         def process(self, instance):
             print("Processing: %s" % type(self).__name__)
-            count["#"] += 1
+            count["#"] += 100
 
     class DontRun2(pyblish.api.Extractor):
+        """This isn't run, because validation fails above"""
         def process(self, context):
             print("Processing: %s" % type(self).__name__)
-            count["#"] += 10
+            count["#"] += 1000
 
     class DontRun3(pyblish.api.Extractor):
+        """This isn't run, because validation fails above"""
         families = ["myFamily"]
 
         def process(self, instance):
             print("Processing: %s" % type(self).__name__)
-            count["#"] += 100
+            count["#"] += 10000
 
     pyblish.api.register_plugin(RunOnce)
     pyblish.api.register_plugin(RunTwice)
@@ -199,14 +204,10 @@ def test_logic():
             test_failed = True
             break
 
-        if isinstance(result, Exception):
-            print("Got an exception: %s" % result)
-            break
-
     context = proxy.context()
     assert context[0].name in ["A", "B"]
     assert context[1].name in ["A", "B"]
-    assert_equals(count["#"], 3)
+    assert_equals(count["#"], 21)
     assert_true(test_failed)
 
 

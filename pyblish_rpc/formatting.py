@@ -235,16 +235,16 @@ def format_plugin(plugin):
 
     """
 
-    try:
-        # The MRO is as follows: (-1)object, (-2)Plugin, (-3)Selector..
-        type = plugin.__mro__[-3].__name__
-    except IndexError:
-        # Plug-in was not subclasses from any of the
-        # provided superclasses of pyblish.api. This
-        # is either a bug or some (very) custom behavior
-        # on the users part.
-        type = None
-        log.critical("This is a bug")
+    if len(plugin.__mro__) > 3:
+        # In case of a SVEC plug-in.
+        try:
+            # The MRO is as follows: (-1)object, (-2)Plugin, (-3)Selector..
+            type = plugin.__mro__[-3].__name__
+        except IndexError:
+            type = None
+            log.critical("This is a bug")
+    else:
+        type = "Simple"
 
     try:
         if plugin.__module__ == "__main__":
@@ -280,6 +280,7 @@ def format_plugin(plugin):
         "hosts": plugin.hosts,
         "families": plugin.families,
         "doc": inspect.getdoc(plugin),
+        "active": plugin.active,
 
         # Metadata
         "__pre11__": plugin.__pre11__,

@@ -14,6 +14,7 @@ import mock
 def test_plugins():
     """Trigger all plug-ins"""
     context = pyblish.api.Context()
+
     for plugin in pyblish_rpc.mocking.plugins:
         pyblish.plugin.process(plugin, context)
 

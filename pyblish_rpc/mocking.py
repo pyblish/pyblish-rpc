@@ -312,6 +312,35 @@ class ValidateWithLongLabel(pyblish.api.Validator):
     label = "Validate with Loooooooooooooooooooooong Label"
 
 
+@pyblish.api.log
+class SimplePlugin1(pyblish.api.Plugin):
+    """Validate using the simple-plugin interface"""
+
+    def process(self):
+        self.log.info("I'm a simple plug-in, only processed once")
+
+
+@pyblish.api.log
+class SimplePlugin2(pyblish.api.Plugin):
+    """Validate using the simple-plugin interface
+
+    It doesn't have an order, and will likely end up *before* all
+    other plug-ins. (due to how sorted([1, 2, 3, None]) works)
+
+    """
+
+    def process(self, context):
+        self.log.info("Processing the context, simply: %s" % context)
+
+
+@pyblish.api.log
+class SimplePlugin3(pyblish.api.Plugin):
+    """Simply process every instance"""
+
+    def process(self, instance):
+        self.log.info("Processing the instance, simply: %s" % instance)
+
+
 
 instances = [
     {
@@ -380,6 +409,10 @@ plugins = [
     ValidateWithLongLabel,
     ExtractAsMa,
     ConformAsset,
+
+    SimplePlugin1,
+    SimplePlugin2,
+    SimplePlugin3,
 
     ValidateInstancesDI,
     ExtractInstancesDI,
