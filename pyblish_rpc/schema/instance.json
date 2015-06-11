@@ -13,7 +13,6 @@
         },
         "data": {
             "type": "object",
-            "required": ["family"],
 
             "properties": {
                 "family": {

@@ -385,6 +385,10 @@ instances = [
         "data": {
             "family": "diFamily"
         }
+    },
+    {
+        "name": "NoFamily",
+        "data": {}
     }
 ]
 
