@@ -84,7 +84,7 @@ def format_record(record):
     record = record.__dict__
 
     # Humanise output and conform to Exceptions
-    record["message"] = record.pop("msg")
+    record["message"] = str(record.pop("msg"))
 
     schema.validate(record, "record")
 
