@@ -1,7 +1,6 @@
 """Assume behaviour on part of the core Pyblish library"""
 
 import sys
-import threading
 
 import pyblish_rpc.client
 import pyblish_rpc.server
@@ -9,10 +8,16 @@ import pyblish_rpc.server
 import pyblish.api
 import pyblish.logic
 
-from nose.tools import *
+from nose.tools import (
+    with_setup,
+    assert_equals,
+    assert_false,
+    assert_true
+)
 
-thread = None
 server = None
+thread = None
+process = None
 client = None
 port = 6000
 
@@ -20,22 +25,27 @@ self = sys.modules[__name__]
 
 
 def setup():
-    """Create and start module-level server"""
+    """Threaded RPC server
+
+    The benefit of a threaded server is that we can introspect
+    and register plug-ins during a test that is then used in
+    the test by the RPC client.
+
+    """
+
+    import threading
     import pyblish_rpc.server
     import pyblish_rpc.service
 
     service = pyblish_rpc.service.RpcService()
-    self.server = pyblish_rpc.server._server(self.port, service)
-
+    self.server = pyblish_rpc.server._server(port, service)
     self.thread = threading.Thread(target=self.server.serve_forever)
     self.thread.daemon = True
     self.thread.start()
-
     self.client = pyblish_rpc.client.Proxy(port)
 
 
 def teardown():
-    """Shutdown module-level server"""
     self.server.shutdown()
     self.thread.join(timeout=10)
     assert not thread.isAlive()
@@ -130,8 +140,7 @@ def test_mock_client():
 
 def test_ping():
     """Pinging server works well"""
-    proxy = pyblish_rpc.client.Proxy(port)
-    message = proxy.ping()
+    message = self.client.ping()
     assert_true(message)
 
 
@@ -190,21 +199,19 @@ def test_logic():
     pyblish.api.register_plugin(DontRun2)
     pyblish.api.register_plugin(DontRun3)
 
-    proxy = pyblish_rpc.client.Proxy(port)
-
     test_failed = False
 
     for result in pyblish.logic.process(
-            func=proxy.process,
-            plugins=proxy.discover,
-            context=proxy.context):
+            func=self.client.process,
+            plugins=self.client.discover,
+            context=self.client.context):
 
         if isinstance(result, pyblish.logic.TestFailed):
             print("Stopped due to: %s" % result)
             test_failed = True
             break
 
-    context = proxy.context()
+    context = self.client.context()
     assert context[0].name in ["A", "B"]
     assert context[1].name in ["A", "B"]
     assert_equals(count["#"], 21)
@@ -233,13 +240,11 @@ def test_repair():
     for plugin in (SelectInstance, ValidateInstance):
         pyblish.api.register_plugin(plugin)
 
-    proxy = pyblish_rpc.client.Proxy(port)
-
     results = list()
     for result in pyblish.logic.process(
-            func=proxy.process,
-            plugins=proxy.discover,
-            context=proxy.context):
+            func=self.client.process,
+            plugins=self.client.discover,
+            context=self.client.context):
 
         if isinstance(result, pyblish.logic.TestFailed):
             assert str(result) == "Broken"
@@ -254,9 +259,32 @@ def test_repair():
             repair.append(result["plugin"])
 
     for result in pyblish.logic.process(
-            func=proxy.repair,
-            plugins=proxy.discover,
-            context=proxy.context):
+            func=self.client.repair,
+            plugins=self.client.discover,
+            context=self.client.context):
         pass
 
     assert_false(_data["broken"])
+
+
+@with_setup(setup_empty)
+def test_logging_nonstring():
+    """Logging a non-string message is ok"""
+
+    class SelectInstance(pyblish.api.Selector):
+        def process(self, context):
+            self.log.info("This is ok")
+            self.log.info(None)
+            self.log.info(str)
+
+    pyblish.api.register_plugin(SelectInstance)
+
+    for result in pyblish.logic.process(
+            func=self.client.process,
+            plugins=self.client.discover,
+            context=self.client.context):
+
+        message = result["records"][0]["message"]
+        assert message in ("This is ok",
+                           "None",
+                           "<type 'str'>"), message
