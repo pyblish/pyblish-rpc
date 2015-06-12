@@ -25,6 +25,7 @@ import service as service_
 
 self = sys.modules[__name__]
 self.current_server_thread = None
+self.current_server = None
 
 
 def default_wrapper(func, *args, **kwargs):
@@ -78,6 +79,12 @@ class RpcServer(SocketServer.ThreadingMixIn, SimpleXMLRPCServer):
                        self, *args)
 
 
+def kill():
+    """Shutdown a running server"""
+    print "Shutting down.."
+    return self.current_server.shutdown()
+
+
 def _server(port, service):
     server = RpcServer(
         "/pyblish",
@@ -85,8 +92,11 @@ def _server(port, service):
         allow_none=True,
         logRequests=False)
 
+    server.register_function(kill)
     server.register_introspection_functions()
     server.register_instance(service, allow_dotted_names=True)
+
+    self.current_server = server
 
     return server
 
@@ -97,7 +107,7 @@ def _serve(port, service=None):
 
     server = _server(port, service)
     print("Listening on %s:%s" % server.server_address)
-    return server.serve_forever()
+    server.serve_forever()
 
 
 def start_production_server(port, service=None):
