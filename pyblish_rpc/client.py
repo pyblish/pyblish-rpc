@@ -41,6 +41,10 @@ class Proxy(object):
             allow_none=True,
             transport=transport)
 
+    def test(self, **vars):
+        """Vars can only be passed as a non-keyword argument"""
+        return self._proxy.test(vars)
+
     def ping(self):
         """Convert Fault to True/False"""
         try:

@@ -2,9 +2,7 @@
 # Standard library
 import os
 import sys
-import json
 import time
-import Queue
 import getpass
 import logging
 import traceback
@@ -33,6 +31,10 @@ class RpcService(object):
         self._provider = None
 
         self.reset()
+
+    def test(self, vars):
+        test = pyblish.logic.registered_test()
+        return test(**vars)
 
     def ping(self):
         """Used to check connectivity"""
