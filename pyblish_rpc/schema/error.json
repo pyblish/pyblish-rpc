@@ -26,6 +26,10 @@
         },
         "exc": {
             "description": "Message from extracted traceback (should be identical to `message`)",
-            "type": "string"}
+            "oneOf": [
+                {"type": "string"},
+                {"type": "null"}
+            ]
+        }
     }
 }
