@@ -50,7 +50,7 @@ class RpcService(object):
 
     def reset(self):
         self._context = pyblish.api.Context()
-        self._plugins = list()
+        self._plugins = pyblish.api.discover()
         self._provider = pyblish.plugin.Provider()
 
     def context(self):
@@ -73,7 +73,7 @@ class RpcService(object):
         return formatting.format_context(self._context)
 
     def discover(self):
-        return formatting.format_plugins(pyblish.api.discover())
+        return formatting.format_plugins(self._plugins)
 
     def process(self, plugin, instance=None):
         """Given JSON objects from client, perform actual processing
@@ -119,11 +119,9 @@ class RpcService(object):
             traceback.print_exc()
             raise e
 
-    @classmethod
-    def _plugin_from_name(cls, name):
+    def _plugin_from_name(self, name):
         """Parse plug-in id to object"""
-        plugins = pyblish.api.discover()
-        plugins = pyblish.lib.ItemList("__name__", plugins)
+        plugins = pyblish.lib.ItemList("__name__", self._plugins)
         return plugins[name]
 
 
