@@ -67,6 +67,8 @@ class Controller(object):
         self.api = pyblish_rpc.client.Proxy(port)
 
     def reset(self):
+        self.api.reset()
+
         results = list()
         plugins = [p for p in self.api.discover()
                    if p.order < 1]
@@ -201,6 +203,7 @@ def test_logic():
 
     test_failed = False
 
+    self.client.reset()
     for result in pyblish.logic.process(
             func=self.client.process,
             plugins=self.client.discover,
@@ -241,6 +244,7 @@ def test_repair():
         pyblish.api.register_plugin(plugin)
 
     results = list()
+    self.client.reset()
     for result in pyblish.logic.process(
             func=self.client.process,
             plugins=self.client.discover,

@@ -19,17 +19,6 @@ def test_plugins():
         pyblish.plugin.process(plugin, context)
 
 
-@mock.patch("pyblish.api.discover")
-def test_service_discover(discover):
-    """Mock service discover works well"""
-    service = pyblish_rpc.service.MockRpcService(delay=1)
-
-    # This service mocks the discovery function of Pyblish
-    # to only provide mocked plug-ins.
-    service.discover()
-    assert not discover.called
-
-
 @mock.patch("time.sleep")
 def test_service_sleep(sleep):
     # Processing includes an artificial delay via time.sleep
