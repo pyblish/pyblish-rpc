@@ -55,17 +55,15 @@ class RpcService(object):
 
     def context(self):
         # Append additional metadata to context
-        executable = sys.executable
-        basename = os.path.basename(executable)
-        name, _ = os.path.splitext(basename)
         port = os.environ.get("PYBLISH_CLIENT_PORT", -1)
+        hosts = ", ".join(reversed(pyblish.api.registered_hosts()))
 
-        for key, value in {"host": name,
+        for key, value in {"host": hosts,
                            "port": int(port),
                            "user": getpass.getuser(),
                            "connectTime": pyblish.lib.time(),
                            "pyblishServerVersion": pyblish.version,
-                           "clientVersion": version.version,
+                           "pyblishRPCVersion": version.version,
                            "pythonVersion": sys.version}.iteritems():
 
             self._context.set_data(key, value)
