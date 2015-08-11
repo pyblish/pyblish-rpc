@@ -2,6 +2,28 @@ import pyblish.api
 
 
 @pyblish.api.log
+class CollectNegatron(pyblish.api.Collector):
+    """Negative collector adds Negatron"""
+
+    order = pyblish.api.Collector.order - 0.49
+
+    def process_context(self, context):
+        self.log.info("Collecting Negatron")
+        context.create_instance("Negatron", family="MyFamily")
+
+
+@pyblish.api.log
+class CollectPositron(pyblish.api.Collector):
+    """Positive collector adds Positron"""
+
+    order = pyblish.api.Collector.order + 0.49
+
+    def process_context(self, context):
+        self.log.info("Collecting Positron")
+        context.create_instance("Positron", family="MyFamily")
+
+
+@pyblish.api.log
 class SelectInstances(pyblish.api.Selector):
     """Select debugging instances
 
@@ -393,6 +415,8 @@ instances = [
 ]
 
 plugins = [
+    CollectNegatron,
+    CollectPositron,
     SelectInstances,
     SelectInstances2,
     SelectDiInstances,
