@@ -246,18 +246,16 @@ def format_plugin(plugin):
     else:
         type = "Simple"
 
-    try:
-        if plugin.__module__ == "__main__":
-            # Support for in-memory plug-ins.
-            path = "mem:%s" % plugin.__name__
-        else:
-            module = sys.modules[plugin.__module__]
-            path = os.path.abspath(module.__file__)
+    module = plugin.__module__
 
-        module = path
-
-    except IndexError:
-        pass
+    if module == "__main__":
+        # Support for in-memory plug-ins.
+        path = "mem:%s" % plugin.__name__
+    else:
+        try:
+            path = os.path.abspath(sys.modules[module].__file__)
+        except:
+            path = "unknown"
 
     has_repair = False
 
@@ -287,6 +285,7 @@ def format_plugin(plugin):
         "__contextEnabled__": plugin.__contextEnabled__,
         "__instanceEnabled__": plugin.__instanceEnabled__,
 
+        "path": path,
         "pre11": plugin.__pre11__,
         "contextEnabled": plugin.__contextEnabled__,
         "instanceEnabled": plugin.__instanceEnabled__,
