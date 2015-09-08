@@ -96,19 +96,29 @@ class HttpWithTimeout(httplib.HTTP):
 # Object Proxies
 
 
-class ContextProxy(list):
+class ContextProxy(pyblish.api.Context):
     """Context Proxy
 
     Given a JSON-representation of a Context, emulate its interface.
 
     """
 
+    def create_instance(self, name, **kwargs):
+        instance = InstanceProxy(name, parent=self)
+        instance._data.update(kwargs)
+        return instance
+
     @classmethod
     def from_json(cls, context):
         self = cls()
-        self[:] = [InstanceProxy.from_json(i) for i in context["children"]]
-        self._data = context.pop("data")
+
+        for instance in context["children"]:
+            instance = InstanceProxy.from_json(instance)
+            self.add(instance)
+
+        self._data = context.get("data", {})
         self._data["pyblishClientVersion"] = pyblish.api.version
+
         return self
 
     def to_json(self):
@@ -117,29 +127,17 @@ class ContextProxy(list):
             "data": self._data
         }
 
-    def data(self, key, default=None):
-        return self._data.get(key, default)
 
-    def set_data(self, key, value):
-        self._data[key] = value
-
-
-class InstanceProxy(list):
+class InstanceProxy(pyblish.api.Instance):
     """Instance Proxy
 
     Given a JSON-representation of an Instance, emulate its interface.
 
     """
 
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return u"%s.%s(%r)" % (__name__, type(self).__name__, self.__str__())
-
     @classmethod
     def from_json(cls, instance):
-        self = cls()
+        self = cls(instance["name"])
         copy = instance.copy()
         copy["_data"] = copy.pop("data")
         self.__dict__.update(copy)
@@ -154,9 +152,6 @@ class InstanceProxy(list):
             "children": list(self),
         }
 
-    def data(self, key, default=None):
-        return self._data.get(key, default)
-
 
 class PluginProxy(object):
     """Plug-in Proxy
@@ -164,12 +159,6 @@ class PluginProxy(object):
     Given a JSON-representation of an Plug-in, emulate its interface.
 
     """
-
-    def __str__(self):
-        return type(self).__name__
-
-    def __repr__(self):
-        return u"%s.%s(%r)" % (__name__, type(self).__name__, self.__str__())
 
     @classmethod
     def from_json(cls, plugin):
@@ -184,6 +173,9 @@ class PluginProxy(object):
         process = None
         repair = None
 
+        name = plugin["name"] + "Proxy"
+        cls = type(name, (cls,), plugin)
+
         # Emulate function
         for name in ("process", "repair"):
             args = ", ".join(plugin["process"]["args"])
@@ -191,8 +183,6 @@ class PluginProxy(object):
                                                      args=args)
             exec(func)
 
-        name = plugin["name"] + "Proxy"
-        cls = type(name, (cls,), plugin)
         cls.process = process
         cls.repair = repair
 

@@ -1,7 +1,12 @@
 import pyblish.api
 
 
-@pyblish.api.log
+class CollectRenamed(pyblish.api.Collector):
+    def process(self, context):
+        i = context.create_instance("MyInstanceXYZ", family="MyFamily")
+        i.set_data("name", "My instance")
+
+
 class CollectNegatron(pyblish.api.Collector):
     """Negative collector adds Negatron"""
 
@@ -12,7 +17,6 @@ class CollectNegatron(pyblish.api.Collector):
         context.create_instance("Negatron", family="MyFamily")
 
 
-@pyblish.api.log
 class CollectPositron(pyblish.api.Collector):
     """Positive collector adds Positron"""
 
@@ -23,7 +27,6 @@ class CollectPositron(pyblish.api.Collector):
         context.create_instance("Positron", family="MyFamily")
 
 
-@pyblish.api.log
 class SelectInstances(pyblish.api.Selector):
     """Select debugging instances
 
@@ -44,7 +47,6 @@ class SelectInstances(pyblish.api.Selector):
                 instance.set_data(key, value)
 
 
-@pyblish.api.log
 class SelectDiInstances(pyblish.api.Selector):
     """Select DI instances"""
 
@@ -59,7 +61,6 @@ class SelectDiInstances(pyblish.api.Selector):
             instance.set_data(key, value)
 
 
-@pyblish.api.log
 class SelectInstancesFailure(pyblish.api.Selector):
     """Select some instances, but fail before adding anything to the context.
 
@@ -74,13 +75,11 @@ class SelectInstancesFailure(pyblish.api.Selector):
         assert False, "I was programmed to fail"
 
 
-@pyblish.api.log
 class SelectInstances2(pyblish.api.Selector):
     def process(self, context):
         self.log.warning("I'm good")
 
 
-@pyblish.api.log
 class ValidateNamespace(pyblish.api.Validator):
     """Namespaces must be orange
 
@@ -109,7 +108,6 @@ But that's how we roll down here. It's got \nnew lines\nas well.
         """)
 
 
-@pyblish.api.log
 class ValidateContext(pyblish.api.Validator):
     families = ["A", "B"]
 
@@ -117,7 +115,6 @@ class ValidateContext(pyblish.api.Validator):
         self.log.info("Processing context..")
 
 
-@pyblish.api.log
 class ValidateContextFailure(pyblish.api.Validator):
     optional = True
     families = ["C"]
@@ -131,7 +128,6 @@ The reason I failed was because the sun was not aligned with the tides,
 and the moon is gray; not yellow. Try again when the moon is yellow."""
 
 
-@pyblish.api.log
 class Validator1(pyblish.api.Validator):
     """Test of the order attribute"""
     order = pyblish.api.Validator.order + 0.1
@@ -141,7 +137,6 @@ class Validator1(pyblish.api.Validator):
         pass
 
 
-@pyblish.api.log
 class Validator2(pyblish.api.Validator):
     order = pyblish.api.Validator.order + 0.2
     families = ["B"]
@@ -150,7 +145,6 @@ class Validator2(pyblish.api.Validator):
         pass
 
 
-@pyblish.api.log
 class Validator3(pyblish.api.Validator):
     order = pyblish.api.Validator.order + 0.3
     families = ["B"]
@@ -159,7 +153,6 @@ class Validator3(pyblish.api.Validator):
         pass
 
 
-@pyblish.api.log
 class ValidateFailureMock(pyblish.api.Validator):
     """Plug-in that always fails"""
     optional = True
@@ -185,13 +178,11 @@ a few newlines and a list.
 """
 
 
-@pyblish.api.log
 class ValidateIsIncompatible(pyblish.api.Validator):
     """This plug-in should never appear.."""
     requires = False  # This is invalid
 
 
-@pyblish.api.log
 class ValidateWithRepair(pyblish.api.Validator):
     """A validator with repair functionality"""
     optional = True
@@ -206,7 +197,6 @@ class ValidateWithRepair(pyblish.api.Validator):
         self.log.info("Success!")
 
 
-@pyblish.api.log
 class ValidateWithRepairFailure(pyblish.api.Validator):
     """A validator with repair functionality that fails"""
     optional = True
@@ -221,13 +211,11 @@ class ValidateWithRepairFailure(pyblish.api.Validator):
         assert False, "Could not repair due to X"
 
 
-@pyblish.api.log
 class ValidateWithVeryVeryVeryLongLongNaaaaame(pyblish.api.Validator):
     """A validator with repair functionality that fails"""
     families = ["A"]
 
 
-@pyblish.api.log
 class ValidateWithRepairContext(pyblish.api.Validator):
     """A validator with repair functionality that fails"""
     optional = True
@@ -242,7 +230,6 @@ class ValidateWithRepairContext(pyblish.api.Validator):
         assert False, "Could not repair"
 
 
-@pyblish.api.log
 class ExtractAsMa(pyblish.api.Extractor):
     """Extract contents of each instance into .ma
 
@@ -270,7 +257,6 @@ class ExtractAsMa(pyblish.api.Extractor):
         self.log.info("Finished successfully")
 
 
-@pyblish.api.log
 class ConformAsset(pyblish.api.Conformer):
     """Conform the world
 
@@ -291,7 +277,6 @@ class ConformAsset(pyblish.api.Conformer):
         self.log.info("Conformed Successfully")
 
 
-@pyblish.api.log
 class ValidateInstancesDI(pyblish.api.Validator):
     """Validate using the DI interface"""
     families = ["diFamily"]
@@ -300,7 +285,6 @@ class ValidateInstancesDI(pyblish.api.Validator):
         self.log.info("Validating %s.." % instance.data("name"))
 
 
-@pyblish.api.log
 class ValidateDIWithRepair(pyblish.api.Validator):
     families = ["diFamily"]
     optional = True
@@ -313,7 +297,6 @@ class ValidateDIWithRepair(pyblish.api.Validator):
         self.log.info("Repairing %s" % instance.data("name"))
 
 
-@pyblish.api.log
 class ExtractInstancesDI(pyblish.api.Extractor):
     """Extract using the DI interface"""
     families = ["diFamily"]
@@ -322,19 +305,16 @@ class ExtractInstancesDI(pyblish.api.Extractor):
         self.log.info("Extracting %s.." % instance.data("name"))
 
 
-@pyblish.api.log
 class ValidateWithLabel(pyblish.api.Validator):
     """Validate using the DI interface"""
     label = "Validate with Label"
 
 
-@pyblish.api.log
 class ValidateWithLongLabel(pyblish.api.Validator):
     """Validate using the DI interface"""
     label = "Validate with Loooooooooooooooooooooong Label"
 
 
-@pyblish.api.log
 class SimplePlugin1(pyblish.api.Plugin):
     """Validate using the simple-plugin interface"""
 
@@ -342,7 +322,6 @@ class SimplePlugin1(pyblish.api.Plugin):
         self.log.info("I'm a simple plug-in, only processed once")
 
 
-@pyblish.api.log
 class SimplePlugin2(pyblish.api.Plugin):
     """Validate using the simple-plugin interface
 
@@ -355,13 +334,21 @@ class SimplePlugin2(pyblish.api.Plugin):
         self.log.info("Processing the context, simply: %s" % context)
 
 
-@pyblish.api.log
 class SimplePlugin3(pyblish.api.Plugin):
     """Simply process every instance"""
 
     def process(self, instance):
         self.log.info("Processing the instance, simply: %s" % instance)
 
+
+class FailFailure(pyblish.api.Validator):
+    families = ["failure"]
+
+    def process(self, instance):
+        assert not instance.data("fail"), "Failed"
+
+    def repair(self, instance):
+        self.log.info("Repairing %s" % instance)
 
 
 instances = [
@@ -411,10 +398,25 @@ instances = [
     {
         "name": "NoFamily",
         "data": {}
+    },
+    {
+        "name": "Failure 1",
+        "data": {
+            "family": "failure",
+            "fail": False
+        }
+    },
+    {
+        "name": "Failure 2",
+        "data": {
+            "family": "failure",
+            "fail": True
+        }
     }
 ]
 
 plugins = [
+    CollectRenamed,
     CollectNegatron,
     CollectPositron,
     SelectInstances,
@@ -445,6 +447,8 @@ plugins = [
     ValidateInstancesDI,
     ExtractInstancesDI,
     ValidateDIWithRepair,
+
+    FailFailure,
 ]
 
 pyblish.api.sort_plugins(plugins)
