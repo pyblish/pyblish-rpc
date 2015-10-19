@@ -177,7 +177,7 @@ def format_instance(instance):
         "name": instance.name,
         "id": instance.id,
         "children": children,
-        "data": format_data(instance._data)
+        "data": format_data(instance.data)
     }
 
     schema.validate(instance, "instance")
@@ -193,7 +193,7 @@ def format_context(context):
         formatted.append(formatted_instance)
 
     return {
-        "data": format_data(context._data),
+        "data": format_data(context.data),
         "children": formatted
     }
 
