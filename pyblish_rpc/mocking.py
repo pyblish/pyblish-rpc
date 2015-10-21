@@ -1,3 +1,4 @@
+import time
 import pyblish.api
 
 
@@ -351,6 +352,36 @@ class FailFailure(pyblish.api.Validator):
         self.log.info("Repairing %s" % instance)
 
 
+class ContextAction(pyblish.api.Action):
+    label = "Context Action"
+
+    def process(self):
+        self.log.info("Running the action!")
+
+
+class InstanceAction(pyblish.api.Action):
+    label = "Instance Action"
+
+    def process(self, instance):
+        self.log.info("Running on %s" % instance.name)
+
+
+class LongRunningAction(pyblish.api.Action):
+    label = "Long-running action"
+
+    def process(self, instance):
+        self.log.info("Sleeping for 2 seconds..")
+        time.sleep(2)
+        self.log.info("Ah, that's better")
+
+
+class PluginWithActions(pyblish.api.Validator):
+    actions = [ContextAction, InstanceAction, LongRunningAction]
+
+    def process(self, context):
+        self.log.info("Ran PluginWithActions")
+
+
 instances = [
     {
         "name": "Peter01",
@@ -449,6 +480,8 @@ plugins = [
     ValidateDIWithRepair,
 
     FailFailure,
+
+    PluginWithActions,
 ]
 
 pyblish.api.sort_plugins(plugins)

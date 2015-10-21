@@ -73,13 +73,14 @@ class RpcService(object):
     def discover(self):
         return formatting.format_plugins(self._plugins)
 
-    def process(self, plugin, instance=None):
+    def process(self, plugin, instance=None, action=None):
         """Given JSON objects from client, perform actual processing
 
         Arguments:
             plugin (dict): JSON representation of plug-in to process
             instance (dict, optional): JSON representation of Instance to
                 be processed.
+            action (str, optional): Id of action to process
 
         """
 
@@ -90,7 +91,8 @@ class RpcService(object):
         result = pyblish.plugin.process(
             plugin=plugin_obj,
             context=self._context,
-            instance=instance_obj)
+            instance=instance_obj,
+            action=action)
 
         return formatting.format_result(result)
 

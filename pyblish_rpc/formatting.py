@@ -300,6 +300,8 @@ def format_plugin(plugin):
             "args": inspect.getargspec(plugin.repair).args,
         },
 
+        "actions": [format_action(a) for a in plugin.actions],
+
         # Public members
         "__all__": [
             "pre11",
@@ -307,6 +309,7 @@ def format_plugin(plugin):
             "label",
             "optional",
             "category",
+            "actions",
             "id",
             "order",
             "doc",
@@ -322,3 +325,12 @@ def format_plugin(plugin):
     schema.validate(output, "plugin")
 
     return output
+
+
+def format_action(action):
+    return {
+        "id": action.id,
+        "label": action.label or action.__name__,
+        "description": action.__doc__,
+        "active": action.active
+    }

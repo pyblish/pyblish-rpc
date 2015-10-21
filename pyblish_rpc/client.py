@@ -53,10 +53,20 @@ class Proxy(object):
             return False
         return True
 
-    def process(self, plugin, context, instance=None):
+    def process(self, plugin, context, instance=None, action=None):
+        """Transmit a `process` request to host
+
+        Arguments:
+            plugin (PluginProxy): Plug-in to process
+            context (ContextProxy): Filtered context
+            instance (InstanceProxy, optional): Instance to process
+            action (str, optional): Action to process
+
+        """
+
         plugin = plugin.to_json()
         instance = instance.to_json() if instance is not None else None
-        return self._proxy.process(plugin, instance)
+        return self._proxy.process(plugin, instance, action)
 
     def repair(self, plugin, context, instance=None):
         plugin = plugin.to_json()
@@ -185,6 +195,10 @@ class PluginProxy(object):
 
         cls.process = process
         cls.repair = repair
+        # cls.actions = [
+        #     ActionProxy.from_json(action)
+        #     for action in plugin["actions"]
+        # ]
 
         cls.__orig__ = plugin
 
@@ -193,3 +207,28 @@ class PluginProxy(object):
     @classmethod
     def to_json(cls):
         return cls.__orig__.copy()
+
+
+# class ActionProxy(object):
+#     """Action Proxy
+
+#     Given a JSON-representation of an Action, emulate its interface.
+
+#     """
+
+#     @classmethod
+#     def from_json(cls, action):
+#         """Build ActionProxy object from incoming dictionary
+
+#         Emulate an action by providing access to attributes
+#         in the same way they are accessed using the remote object.
+#         This allows for it to be used by members of :mod:`pyblish.logic`.
+
+#         """
+
+#         cls.__orig__ = action
+#         return cls
+
+#     @classmethod
+#     def to_json(cls):
+#         return cls.__orig__.copy()
