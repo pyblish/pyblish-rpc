@@ -332,5 +332,8 @@ def format_action(action):
         "id": action.id,
         "label": action.label or action.__name__,
         "description": action.__doc__,
-        "active": action.active
+        "active": action.active,
+        "icon": action.icon or "",
+        "on": action.on,
+        "__error__": action.__error__,
     }

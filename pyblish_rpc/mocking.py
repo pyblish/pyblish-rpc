@@ -1,4 +1,6 @@
+import os
 import time
+import subprocess
 import pyblish.api
 
 
@@ -353,33 +355,120 @@ class FailFailure(pyblish.api.Validator):
 
 
 class ContextAction(pyblish.api.Action):
-    label = "Context Action"
+    label = "Context action"
+
+    def process(self, context):
+        self.log.info("I have access to the context")
+        self.log.info("Context.instances: %s" % str(list(context)))
+
+
+class FailingAction(pyblish.api.Action):
+    label = "Failing action"
 
     def process(self):
-        self.log.info("Running the action!")
-
-
-class InstanceAction(pyblish.api.Action):
-    label = "Instance Action"
-
-    def process(self, instance):
-        self.log.info("Running on %s" % instance.name)
+        self.log.info("About to fail..")
+        raise Exception("I failed")
 
 
 class LongRunningAction(pyblish.api.Action):
     label = "Long-running action"
 
-    def process(self, instance):
+    def process(self):
         self.log.info("Sleeping for 2 seconds..")
         time.sleep(2)
         self.log.info("Ah, that's better")
 
 
-class PluginWithActions(pyblish.api.Validator):
-    actions = [ContextAction, InstanceAction, LongRunningAction]
+class IconAction(pyblish.api.Action):
+    label = "Icon action"
+    icon = "crop"
+
+    def process(self):
+        self.log.info("I have an icon")
+
+
+class PluginAction(pyblish.api.Action):
+    label = "Plugin action"
+
+    def process(self, plugin):
+        self.log.info("I have access to my parent plug-in")
+        self.log.info("Which is %s" % plugin.id)
+
+
+class LaunchExplorerAction(pyblish.api.Action):
+    label = "Open in Explorer"
+    icon = "folder-open"
 
     def process(self, context):
+        cwd = os.getcwd()
+        self.log.info("Opening %s in Explorer" % cwd)
+        result = subprocess.call("start .", cwd=cwd, shell=True)
+        self.log.debug(result)
+
+
+class ProcessedAction(pyblish.api.Action):
+    label = "Success action"
+    icon = "check"
+    on = "processed"
+
+    def process(self):
+        self.log.info("I am only available on a successful plug-in")
+
+
+class FailedAction(pyblish.api.Action):
+    label = "Failure action"
+    icon = "close"
+    on = "failed"
+
+
+class SucceededAction(pyblish.api.Action):
+    label = "Success action"
+    icon = "check"
+    on = "succeeded"
+
+    def process(self):
+        self.log.info("I am only available on a successful plug-in")
+
+
+class BadEventAction(pyblish.api.Action):
+    label = "Bad event action"
+    on = "not exist"
+
+
+class InactiveAction(pyblish.api.Action):
+    active = False
+
+
+class PluginWithActions(pyblish.api.Validator):
+    optional = True
+    actions = [
+        ContextAction,
+        FailingAction,
+        LongRunningAction,
+        IconAction,
+        PluginAction,
+        LaunchExplorerAction,
+        FailedAction,
+        SucceededAction,
+        # pyblish.api.Separator,
+        # pyblish.api.Category("Workflow"),
+        BadEventAction,
+        InactiveAction,
+    ]
+
+    def process(self):
         self.log.info("Ran PluginWithActions")
+
+
+class FailingPluginWithActions(pyblish.api.Validator):
+    optional = True
+    actions = [
+        FailedAction,
+        SucceededAction,
+    ]
+
+    def process(self):
+        raise Exception("I was programmed to fail")
 
 
 instances = [
@@ -482,6 +571,7 @@ plugins = [
     FailFailure,
 
     PluginWithActions,
+    FailingPluginWithActions,
 ]
 
 pyblish.api.sort_plugins(plugins)
