@@ -335,5 +335,6 @@ def format_action(action):
         "active": action.active,
         "icon": action.icon or "",
         "on": action.on,
+        "type": action.type,
         "__error__": action.__error__,
     }

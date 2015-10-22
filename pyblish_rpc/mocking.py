@@ -442,18 +442,22 @@ class InactiveAction(pyblish.api.Action):
 class PluginWithActions(pyblish.api.Validator):
     optional = True
     actions = [
+        pyblish.api.Category("General"),
         ContextAction,
         FailingAction,
         LongRunningAction,
         IconAction,
         PluginAction,
+        pyblish.api.Category("Empty"),
+        pyblish.api.Category("OS"),
         LaunchExplorerAction,
+        pyblish.api.Separator,
         FailedAction,
         SucceededAction,
-        # pyblish.api.Separator,
-        # pyblish.api.Category("Workflow"),
+        pyblish.api.Category("Debug"),
         BadEventAction,
         InactiveAction,
+        pyblish.api.Category("Empty"),
     ]
 
     def process(self):
