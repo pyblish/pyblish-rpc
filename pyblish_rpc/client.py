@@ -115,7 +115,7 @@ class ContextProxy(pyblish.api.Context):
 
     def create_instance(self, name, **kwargs):
         instance = InstanceProxy(name, parent=self)
-        instance._data.update(kwargs)
+        instance.data.update(kwargs)
         return instance
 
     @classmethod
@@ -126,15 +126,15 @@ class ContextProxy(pyblish.api.Context):
             instance = InstanceProxy.from_json(instance)
             self.add(instance)
 
-        self._data = context.get("data", {})
-        self._data["pyblishClientVersion"] = pyblish.api.version
+        self.data = context.get("data", {})
+        self.data["pyblishClientVersion"] = pyblish.api.version
 
         return self
 
     def to_json(self):
         return {
             "children": list(self),
-            "data": self._data
+            "data": self.data
         }
 
 
@@ -149,7 +149,7 @@ class InstanceProxy(pyblish.api.Instance):
     def from_json(cls, instance):
         self = cls(instance["name"])
         copy = instance.copy()
-        copy["_data"] = copy.pop("data")
+        copy["data"] = copy.pop("data")
         self.__dict__.update(copy)
         self[:] = instance["children"]
         return self
@@ -158,7 +158,7 @@ class InstanceProxy(pyblish.api.Instance):
         return {
             "name": self.name,
             "id": self.id,
-            "data": self._data,
+            "data": self.data,
             "children": list(self),
         }
 
@@ -195,10 +195,6 @@ class PluginProxy(object):
 
         cls.process = process
         cls.repair = repair
-        # cls.actions = [
-        #     ActionProxy.from_json(action)
-        #     for action in plugin["actions"]
-        # ]
 
         cls.__orig__ = plugin
 
@@ -207,28 +203,3 @@ class PluginProxy(object):
     @classmethod
     def to_json(cls):
         return cls.__orig__.copy()
-
-
-# class ActionProxy(object):
-#     """Action Proxy
-
-#     Given a JSON-representation of an Action, emulate its interface.
-
-#     """
-
-#     @classmethod
-#     def from_json(cls, action):
-#         """Build ActionProxy object from incoming dictionary
-
-#         Emulate an action by providing access to attributes
-#         in the same way they are accessed using the remote object.
-#         This allows for it to be used by members of :mod:`pyblish.logic`.
-
-#         """
-
-#         cls.__orig__ = action
-#         return cls
-
-#     @classmethod
-#     def to_json(cls):
-#         return cls.__orig__.copy()

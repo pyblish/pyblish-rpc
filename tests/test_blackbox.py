@@ -65,30 +65,37 @@ class Controller(object):
     """A minimal Pyblish QML controller"""
     def __init__(self, port):
         self.api = pyblish_rpc.client.Proxy(port)
+        self.plugins = list()
 
     def reset(self):
         self.api.reset()
+        self.plugins = self.api.discover()
 
         results = list()
-        plugins = [p for p in self.api.discover()
-                   if p.order < 1]
+        plugins = [p for p in self.plugins if p.order < 1]
 
         for result in pyblish.logic.process(
                 func=self.api.process,
                 plugins=plugins,
-                context=self.api.context()):
+                context=self.api.context):
             results.append(result)
+
+        try:
+            print(result)
+        except:
+            pass
         return results
 
     def publish(self):
         results = list()
-        plugins = [p for p in self.api.discover()
-                   if p.order >= 1]
+        plugins = [p for p in self.plugins if p.order >= 1]
+        context = self.api.context()
+        print("publishing context: %s" % context[0].data)
 
         for result in pyblish.logic.process(
                 func=self.api.process,
                 plugins=plugins,
-                context=self.api.context()):
+                context=context):
 
             if isinstance(result, pyblish.logic.TestFailed):
                 print("Stopped due to: %s" % result)
@@ -111,14 +118,17 @@ def test_mock_client():
 
     class SelectInstances(pyblish.api.Selector):
         def process(self, context):
+            print("Processing %s" % type(self).__name__)
             instance = context.create_instance("MyInstance")
             instance.set_data("family", "myFamily")
+            instance.data["marcus"] = "Marcus"
             count["#"] += 1
 
     class ValidateInstances(pyblish.api.Validator):
         families = ["myFamily"]
 
         def process(self, instance):
+            print("Processing %s" % type(self).__name__)
             count["#"] += 1
             assert False
 
@@ -129,8 +139,10 @@ def test_mock_client():
     c.reset()
 
     plugins = c.api.discover()
+
     assert "SelectInstances" in [p.name for p in plugins]
     assert "ValidateInstances" in [p.name for p in plugins]
+    assert "ValidateInstances" in [p.name for p in c.plugins]
 
     c.publish()
 

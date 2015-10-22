@@ -66,7 +66,7 @@ class RpcService(object):
                            "pyblishRPCVersion": version.version,
                            "pythonVersion": sys.version}.iteritems():
 
-            self._context.set_data(key, value)
+            self._context.data[key] = value
 
         return formatting.format_context(self._context)
 
