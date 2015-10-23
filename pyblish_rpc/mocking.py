@@ -430,6 +430,11 @@ class SucceededAction(pyblish.api.Action):
         self.log.info("I am only available on a successful plug-in")
 
 
+class LongLabelAction(pyblish.api.Action):
+    label = "An incredibly, incredicly looooon label. Very long."
+    icon = "close"
+
+
 class BadEventAction(pyblish.api.Action):
     label = "Bad event action"
     on = "not exist"
@@ -457,6 +462,7 @@ class PluginWithActions(pyblish.api.Validator):
         pyblish.api.Category("Debug"),
         BadEventAction,
         InactiveAction,
+        LongLabelAction,
         pyblish.api.Category("Empty"),
     ]
 
