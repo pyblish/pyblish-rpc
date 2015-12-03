@@ -22,7 +22,11 @@ schema_dir = os.path.join(module_dir, "schema")
 
 def load_all():
     for schema in os.listdir(schema_dir):
-        if schema.startswith("_"):
+        if schema.startswith(("_", ".")):
+            continue
+        if not schema.endswith(".json"):
+            continue
+        if not os.path.isfile(os.path.join(schema_dir, schema)):
             continue
         with open(os.path.join(schema_dir, schema)) as f:
             cache[schema] = json.load(f)
