@@ -26,6 +26,8 @@ def load_all():
             continue
         if not schema.endswith(".json"):
             continue
+        if not os.path.isfile(os.path.join(schema_dir, schema)):
+            continue
         with open(os.path.join(schema_dir, schema)) as f:
             cache[schema] = json.load(f)
 
