@@ -319,6 +319,7 @@ def format_plugin(plugin):
             "families",
             "contextEnabled",
             "instanceEnabled",
+            "path"
         ]
     }
 
