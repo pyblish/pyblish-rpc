@@ -301,26 +301,6 @@ def format_plugin(plugin):
         },
 
         "actions": [format_action(a) for a in plugin.actions],
-
-        # Public members
-        "__all__": [
-            "pre11",
-            "name",
-            "label",
-            "optional",
-            "category",
-            "actions",
-            "id",
-            "order",
-            "doc",
-            "type",
-            "module",
-            "hasRepair",
-            "families",
-            "contextEnabled",
-            "instanceEnabled",
-            "path"
-        ]
     }
 
     schema.validate(output, "plugin")
