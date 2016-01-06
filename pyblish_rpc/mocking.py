@@ -481,6 +481,14 @@ class FailingPluginWithActions(pyblish.api.Validator):
         raise Exception("I was programmed to fail")
 
 
+class ValidateDefaultOff(pyblish.api.Validator):
+    families = ["A", "B"]
+    active = False
+    optional = True
+
+    def process(self, instance):
+        self.log.info("Processing instance..")
+
 instances = [
     {
         "name": "Peter01",
@@ -567,6 +575,7 @@ plugins = [
     ValidateWithRepairContext,
     ValidateWithLabel,
     ValidateWithLongLabel,
+    ValidateDefaultOff,
     ExtractAsMa,
     ConformAsset,
 
