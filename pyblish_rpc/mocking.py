@@ -489,6 +489,27 @@ class ValidateDefaultOff(pyblish.api.Validator):
     def process(self, instance):
         self.log.info("Processing instance..")
 
+
+class ValidateWithHyperlinks(pyblish.api.Validator):
+    """ To learn about Pyblish, <a href="http://pyblish.com">click here</a>
+    (http://pyblish.com)
+    """
+    families = ["A", "B"]
+
+    def process(self, instance):
+        self.log.info("Processing instance..")
+
+        # text links
+        self.log.info("To learn about Pyblish, http://pyblish.com")
+
+        # HTML links
+        msg = "To learn about Pyblish, "
+        msg += "<a href='http://pyblish.com'>click here</a>"
+        msg += " (http://pyblish.com)"
+        self.log.info(msg)
+
+        assert False, msg
+
 instances = [
     {
         "name": "Peter01",
@@ -576,6 +597,7 @@ plugins = [
     ValidateWithLabel,
     ValidateWithLongLabel,
     ValidateDefaultOff,
+    ValidateWithHyperlinks,
     ExtractAsMa,
     ConformAsset,
 
