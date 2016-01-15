@@ -124,6 +124,24 @@ class RpcService(object):
         plugins = pyblish.lib.ItemList("__name__", self._plugins)
         return plugins[name]
 
+    def emit(self, signal, data):
+
+        item = None
+
+        if data["item"]["__pyqtproperty__itemType"] == "instance":
+            name = data["item"]["__pyqtproperty__data"]["name"]
+            for instance in self._context:
+                if instance.data["name"] == name:
+                    item = instance
+
+        if data["item"]["__pyqtproperty__itemType"] == "plugin":
+            for plugin in self._plugins:
+                if plugin.__name__ == data["item"]["__pyqtproperty__id"]:
+                    item = plugin
+
+        pyblish.api.emit(signal, item=item, new_value=data["new_value"],
+                         old_value=data["old_value"])
+
 
 class MockRpcService(RpcService):
     def __init__(self, delay=0.01, *args, **kwargs):
@@ -133,6 +151,11 @@ class MockRpcService(RpcService):
 
     def discover(self):
         return formatting.format_plugins(mocking.plugins)
+
+    def reset(self):
+        self._context = pyblish.api.Context()
+        self._plugins = mocking.plugins
+        self._provider = pyblish.plugin.Provider()
 
     def process(self, *args, **kwargs):
         time.sleep(self.delay)

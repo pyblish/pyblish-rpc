@@ -80,6 +80,9 @@ class Proxy(object):
         return [PluginProxy.from_json(plugin)
                 for plugin in self._proxy.discover()]
 
+    def emit(self, signal, data):
+        self._proxy.emit(signal, data)
+
 
 class TimeoutTransport(xmlrpclib.Transport):
     """Some requests may take a very long time, and that is ok"""
