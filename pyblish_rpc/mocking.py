@@ -538,12 +538,8 @@ pyblish.api.register_callback("publish", toggle_deregister_bulk_one)
 pyblish.api.register_callback("publish", toggle_deregister_bulk_two)
 pyblish.api.deregister_all_callbacks()
 
-pyblish.api.register_callback("publish", toggle_deregister_bulk_one)
-pyblish.api.register_callback("publish", toggle_deregister_bulk_two)
-pyblish.api.deregister_callbacks("publish")
-
 pyblish.api.register_callback("publish", toggle_deregister)
-pyblish.api.deregister_callback(toggle_deregister)
+pyblish.api.deregister_callback("publish", toggle_deregister)
 
 pyblish.api.register_callback("publish", toggle)
 pyblish.api.register_callback("publish", toggle_again)
