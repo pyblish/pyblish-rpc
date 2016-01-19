@@ -124,23 +124,27 @@ class RpcService(object):
         plugins = pyblish.lib.ItemList("__name__", self._plugins)
         return plugins[name]
 
-    def emit(self, signal, data):
+    def emit(self, signal, kwargs):
+        """Parse the serialised kwargs into python classes, ei. instances and
+        plugins.
+        """
 
-        item = None
+        for kw in kwargs:
+            if isinstance(kwargs[kw], dict):
+                data = kwargs[kw]
+                if "__pyqtproperty__itemType" in data:
+                    if data["__pyqtproperty__itemType"] == "instance":
+                        name = data["__pyqtproperty__data"]["name"]
+                        for instance in self._context:
+                            if instance.data["name"] == name:
+                                kwargs[kw] = instance
 
-        if data["item"]["__pyqtproperty__itemType"] == "instance":
-            name = data["item"]["__pyqtproperty__data"]["name"]
-            for instance in self._context:
-                if instance.data["name"] == name:
-                    item = instance
+                    if data["__pyqtproperty__itemType"] == "plugin":
+                        for plugin in self._plugins:
+                            if plugin.__name__ == data["__pyqtproperty__id"]:
+                                kwargs[kw] = plugin
 
-        if data["item"]["__pyqtproperty__itemType"] == "plugin":
-            for plugin in self._plugins:
-                if plugin.__name__ == data["item"]["__pyqtproperty__id"]:
-                    item = plugin
-
-        pyblish.api.emit(signal, item=item, new_value=data["new_value"],
-                         old_value=data["old_value"])
+        pyblish.api.emit(signal, **kwargs)
 
 
 class MockRpcService(RpcService):
