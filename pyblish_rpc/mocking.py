@@ -344,16 +344,6 @@ class SimplePlugin3(pyblish.api.Plugin):
         self.log.info("Processing the instance, simply: %s" % instance)
 
 
-class FailFailure(pyblish.api.Validator):
-    families = ["failure"]
-
-    def process(self, instance):
-        assert not instance.data("fail"), "Failed"
-
-    def repair(self, instance):
-        self.log.info("Repairing %s" % instance)
-
-
 class ContextAction(pyblish.api.Action):
     label = "Context action"
 
@@ -491,9 +481,12 @@ class ValidateDefaultOff(pyblish.api.Validator):
 
 
 class ValidateWithHyperlinks(pyblish.api.Validator):
-    """ To learn about Pyblish, <a href="http://pyblish.com">click here</a>
-     (http://pyblish.com)
+    """To learn about Pyblish
+
+    <a href="http://pyblish.com">click here</a> (http://pyblish.com)
+
     """
+
     families = ["A", "B"]
 
     def process(self, instance):
@@ -504,7 +497,19 @@ class ValidateWithHyperlinks(pyblish.api.Validator):
 
         self.log.info(msg)
 
-        assert False, "Programmed to fail: " + msg
+
+class LongRunningCollector(pyblish.api.Collector):
+    def process(self, context):
+        self.log.info("Sleeping for 2 seconds..")
+        time.sleep(2)
+        self.log.info("Good morning")
+
+
+class LongRunningValidator(pyblish.api.Validator):
+    def process(self, context):
+        self.log.info("Sleeping for 2 seconds..")
+        time.sleep(2)
+        self.log.info("Good morning")
 
 
 def toggle_instance(instance=None, new_value='', old_value=''):
@@ -618,10 +623,11 @@ plugins = [
     ExtractInstancesDI,
     ValidateDIWithRepair,
 
-    FailFailure,
-
     PluginWithActions,
     FailingPluginWithActions,
+
+    LongRunningCollector,
+    LongRunningValidator,
 ]
 
 pyblish.api.sort_plugins(plugins)
