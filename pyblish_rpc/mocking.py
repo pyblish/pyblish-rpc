@@ -507,45 +507,17 @@ class ValidateWithHyperlinks(pyblish.api.Validator):
         assert False, "Programmed to fail: " + msg
 
 
-def toggle(item=None, new_value='', old_value=''):
-    print "{0} changed from {1} to {2}".format(item, new_value, old_value)
-
-
-def toggle_again(item=None, new_value='', old_value=''):
-    print "Confirming {0} changed from {1} to {2}".format(item, new_value,
+def toggle_instance(instance=None, new_value='', old_value=''):
+    print "Instance ({0}) changed from {1} to {2}".format(instance, new_value,
                                                           old_value)
 
 
-def toggle_deregister(item=None, new_value='', old_value=''):
-    print "I shouldn't be registered!"
+def toggle_plugin(plugin=None, new_value='', old_value=''):
+    print "Plugin ({0}) changed from {1} to {2}".format(plugin, new_value,
+                                                        old_value)
 
-
-def toggle_deregister_bulk_one(item=None, new_value='', old_value=''):
-    print "We shouldn't be registered!"
-
-
-def toggle_deregister_bulk_two(item=None, new_value='', old_value=''):
-    print "We shouldn't be registered!"
-
-
-def plugin_failed(plugin=None, context=None, instance=None, error=''):
-    if instance:
-        print "{0} on {1} failed with \"{2}\"".format(plugin, instance, error)
-    else:
-        print "{0} on {1} failed with \"{2}\"".format(plugin, context, error)
-
-pyblish.api.register_callback("publish", toggle_deregister_bulk_one)
-pyblish.api.register_callback("publish", toggle_deregister_bulk_two)
-pyblish.api.deregister_all_callbacks()
-
-pyblish.api.register_callback("publish", toggle_deregister)
-pyblish.api.deregister_callback("publish", toggle_deregister)
-
-pyblish.api.register_callback("publish", toggle)
-pyblish.api.register_callback("publish", toggle_again)
-pyblish.api.register_callback("pluginFailed", plugin_failed)
-
-print "Registered Callbacks: " + str(pyblish.api.registered_callbacks())
+pyblish.api.register_callback("instanceToggled", toggle_instance)
+pyblish.api.register_callback("pluginToggled", toggle_plugin)
 
 instances = [
     {

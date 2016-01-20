@@ -129,22 +129,20 @@ class RpcService(object):
         plugins.
         """
 
-        for kw in kwargs:
-            if isinstance(kwargs[kw], dict):
-                data = kwargs[kw]
-                if "__pyqtproperty__itemType" in data:
-                    if data["__pyqtproperty__itemType"] == "instance":
-                        name = data["__pyqtproperty__data"]["name"]
-                        for instance in self._context:
-                            if instance.data["name"] == name:
-                                kwargs[kw] = instance
+        if signal == "instanceToggled":
+            for instance in self._context:
+                if instance.data["name"] == kwargs["instance"]["json"]["name"]:
+                    kwargs["instance"] = instance
+                    break
 
-                    if data["__pyqtproperty__itemType"] == "plugin":
-                        for plugin in self._plugins:
-                            if plugin.__name__ == data["__pyqtproperty__id"]:
-                                kwargs[kw] = plugin
+        if signal == "pluginToggled":
+            for plugin in self._plugins:
+                if plugin.id == kwargs["plugin"]["json"]["id"]:
+                    kwargs["plugin"] = plugin
+                    break
 
         pyblish.api.emit(signal, **kwargs)
+
 
 
 class MockRpcService(RpcService):
