@@ -129,15 +129,15 @@ class RpcService(object):
         plugins.
         """
 
-        if signal == "instanceToggled":
+        if "instance" in kwargs:
             for instance in self._context:
-                if instance.data["name"] == kwargs["instance"]["json"]["name"]:
+                if instance.data["name"] == kwargs["instance"]:
                     kwargs["instance"] = instance
                     break
 
-        if signal == "pluginToggled":
+        if "plugin" in kwargs:
             for plugin in self._plugins:
-                if plugin.id == kwargs["plugin"]["json"]["id"]:
+                if plugin.id == kwargs["plugin"]:
                     kwargs["plugin"] = plugin
                     break
 
