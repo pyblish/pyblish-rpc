@@ -30,6 +30,9 @@ class Proxy(object):
         return getattr(self._proxy, attr)
 
     def __init__(self, port, user=None, password=None):
+        self.cached_context = list()
+        self.cached_discover = list()
+
         transport = TimeoutTransport()
 
         self._proxy = xmlrpclib.ServerProxy(
@@ -74,11 +77,15 @@ class Proxy(object):
         return self._proxy.repair(plugin, instance)
 
     def context(self):
-        return ContextProxy.from_json(self._proxy.context())
+        self.cached_context = ContextProxy.from_json(self._proxy.context())
+        return self.cached_context
 
     def discover(self):
-        return [PluginProxy.from_json(plugin)
-                for plugin in self._proxy.discover()]
+        self.cached_discover[:] = list()
+        for plugin in self._proxy.discover():
+            self.cached_discover.append(PluginProxy.from_json(plugin))
+
+        return self.cached_discover
 
     def emit(self, signal, **kwargs):
         self._proxy.emit(signal, kwargs)
