@@ -124,6 +124,26 @@ class RpcService(object):
         plugins = pyblish.lib.ItemList("__name__", self._plugins)
         return plugins[name]
 
+    def emit(self, signal, kwargs):
+        """Parse the serialised kwargs into python classes, ei. instances and
+        plugins.
+        """
+
+        if "instance" in kwargs:
+            for instance in self._context:
+                if instance.data["name"] == kwargs["instance"]:
+                    kwargs["instance"] = instance
+                    break
+
+        if "plugin" in kwargs:
+            for plugin in self._plugins:
+                if plugin.id == kwargs["plugin"]:
+                    kwargs["plugin"] = plugin
+                    break
+
+        pyblish.api.emit(signal, **kwargs)
+
+
 
 class MockRpcService(RpcService):
     def __init__(self, delay=0.01, *args, **kwargs):
@@ -133,6 +153,11 @@ class MockRpcService(RpcService):
 
     def discover(self):
         return formatting.format_plugins(mocking.plugins)
+
+    def reset(self):
+        self._context = pyblish.api.Context()
+        self._plugins = mocking.plugins
+        self._provider = pyblish.plugin.Provider()
 
     def process(self, *args, **kwargs):
         time.sleep(self.delay)
