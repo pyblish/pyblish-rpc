@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 0.2.0
+-------------
+
+- Feature: Callbacks (#10)
+- Feature: Cached client
+
 Version 0.1.4
 -------------
 
