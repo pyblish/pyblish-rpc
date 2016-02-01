@@ -144,7 +144,6 @@ class RpcService(object):
         pyblish.api.emit(signal, **kwargs)
 
 
-
 class MockRpcService(RpcService):
     def __init__(self, delay=0.01, *args, **kwargs):
         super(MockRpcService, self).__init__(*args, **kwargs)
