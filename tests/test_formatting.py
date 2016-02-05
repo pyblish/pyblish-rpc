@@ -1,7 +1,5 @@
 import logging
 
-from nose.tools import *
-
 import pyblish.api
 from pyblish_rpc import schema
 from pyblish_rpc import formatting
