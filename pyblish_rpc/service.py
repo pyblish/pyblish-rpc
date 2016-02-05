@@ -125,8 +125,12 @@ class RpcService(object):
         return plugins[name]
 
     def emit(self, signal, kwargs):
-        """Parse the serialised kwargs into python classes, ei. instances and
-        plugins.
+        """Trigger registered callbacks
+
+        This method is triggered remotely and run locally.
+        The keywords "instance" and "plugin" are implicitly
+        converted to their corresponding Pyblish objects.
+
         """
 
         if "instance" in kwargs:
