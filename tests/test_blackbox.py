@@ -42,7 +42,7 @@ def setup():
     self.thread = threading.Thread(target=self.server.serve_forever)
     self.thread.daemon = True
     self.thread.start()
-    self.client = pyblish_rpc.client.Proxy(port)
+    self.host = pyblish_rpc.client.Proxy(port)
 
 
 def teardown():
@@ -58,7 +58,7 @@ def setup_empty():
     pyblish.api.deregister_all_plugins()
     pyblish.api.deregister_all_services()
 
-    self.client.reset()
+    self.host.reset()
 
 
 class Controller(object):
@@ -154,7 +154,7 @@ def test_mock_client():
 
 def test_ping():
     """Pinging server works well"""
-    message = self.client.ping()
+    message = self.host.ping()
     assert_true(message)
 
 
@@ -215,18 +215,18 @@ def test_logic():
 
     test_failed = False
 
-    self.client.reset()
+    self.host.reset()
     for result in pyblish.logic.process(
-            func=self.client.process,
-            plugins=self.client.discover,
-            context=self.client.context):
+            func=self.host.process,
+            plugins=self.host.discover,
+            context=self.host.context):
 
         if isinstance(result, pyblish.logic.TestFailed):
             print("Stopped due to: %s" % result)
             test_failed = True
             break
 
-    context = self.client.context()
+    context = self.host.context()
     assert context[0].name in ["A", "B"]
     assert context[1].name in ["A", "B"]
     assert_equals(count["#"], 21)
@@ -256,11 +256,11 @@ def test_repair():
         pyblish.api.register_plugin(plugin)
 
     results = list()
-    self.client.reset()
+    self.host.reset()
     for result in pyblish.logic.process(
-            func=self.client.process,
-            plugins=self.client.discover,
-            context=self.client.context):
+            func=self.host.process,
+            plugins=self.host.discover,
+            context=self.host.context):
 
         if isinstance(result, pyblish.logic.TestFailed):
             assert str(result) == "Broken"
@@ -275,9 +275,9 @@ def test_repair():
             repair.append(result["plugin"])
 
     for result in pyblish.logic.process(
-            func=self.client.repair,
-            plugins=self.client.discover,
-            context=self.client.context):
+            func=self.host.repair,
+            plugins=self.host.discover,
+            context=self.host.context):
         pass
 
     assert_false(_data["broken"])
@@ -296,11 +296,45 @@ def test_logging_nonstring():
     pyblish.api.register_plugin(SelectInstance)
 
     for result in pyblish.logic.process(
-            func=self.client.process,
-            plugins=self.client.discover,
-            context=self.client.context):
+            func=self.host.process,
+            plugins=self.host.discover,
+            context=self.host.context):
 
         message = result["records"][0]["message"]
         assert message in ("This is ok",
                            "None",
                            "<type 'str'>"), message
+
+
+@with_setup(setup_empty)
+def test_emit_implicit_conversion():
+    """Emitting via service implicitly converts instances to objects"""
+
+    count = {"#": 0}
+
+    class MyCollector(pyblish.api.Collector):
+        def process(self, context):
+            count["#"] += 1
+            context.create_instance("MyInstance")
+
+    def callback(instance, plugin, not_converted):
+        assert isinstance(instance, pyblish.api.Instance), (
+            "Passed instance was not implicitly converted")
+        assert issubclass(plugin, pyblish.api.Collector), (
+            "Passed plugin was not implicitly converted")
+        assert isinstance(not_converted, basestring)
+        count["#"] += 10
+
+    pyblish.api.register_callback("myEvent", callback)
+    pyblish.api.register_plugin(MyCollector)
+
+    c = Controller(port)
+    c.reset()
+    c.publish()
+
+    self.host.emit("myEvent",
+                   instance="MyInstance",
+                   plugin="MyCollector",
+                   not_converted="Test")
+
+    assert count["#"] == 11

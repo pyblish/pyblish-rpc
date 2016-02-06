@@ -6,15 +6,6 @@ import subprocess
 import pyblish_rpc.client
 import pyblish_rpc.server
 
-import pyblish.api
-
-from nose.tools import (
-    with_setup,
-    assert_equals,
-    assert_false,
-    assert_true
-)
-
 server = None
 thread = None
 process = None

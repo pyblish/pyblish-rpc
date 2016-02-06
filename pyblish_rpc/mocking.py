@@ -512,18 +512,6 @@ class LongRunningValidator(pyblish.api.Validator):
         self.log.info("Good morning")
 
 
-def toggle_instance(instance=None, new_value='', old_value=''):
-    print "Instance ({0}) changed from {1} to {2}".format(instance, new_value,
-                                                          old_value)
-
-
-def toggle_plugin(plugin=None, new_value='', old_value=''):
-    print "Plugin ({0}) changed from {1} to {2}".format(plugin, new_value,
-                                                        old_value)
-
-pyblish.api.register_callback("instanceToggled", toggle_instance)
-pyblish.api.register_callback("pluginToggled", toggle_plugin)
-
 instances = [
     {
         "name": "Peter01",

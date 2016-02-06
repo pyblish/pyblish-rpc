@@ -7,6 +7,9 @@ import traceback
 
 import schema
 
+import pyblish.lib
+import pyblish.plugin
+
 log = logging.getLogger("pyblish")
 
 
@@ -235,16 +238,14 @@ def format_plugin(plugin):
 
     """
 
-    if len(plugin.__mro__) > 3:
-        # In case of a SVEC plug-in.
-        try:
-            # The MRO is as follows: (-1)object, (-2)Plugin, (-3)Selector..
-            type = plugin.__mro__[-3].__name__
-        except IndexError:
-            type = None
-            log.critical("This is a bug")
-    else:
-        type = "Simple"
+    type = "Other"
+
+    for order, _type in {pyblish.plugin.CollectorOrder: "Collector",
+                         pyblish.plugin.ValidatorOrder: "Validator",
+                         pyblish.plugin.ExtractorOrder: "Extractor",
+                         pyblish.plugin.IntegratorOrder: "Integrator"}.items():
+        if pyblish.lib.inrange(plugin.order, base=order):
+            type = _type
 
     module = plugin.__module__
 
