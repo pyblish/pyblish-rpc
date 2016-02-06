@@ -8,8 +8,19 @@ communication is serialised back into its original JSON.
 """
 
 import socket
-import httplib
-import xmlrpclib
+
+try:
+    import httplib
+except ImportError:
+    # Python 3
+    import http.client as httplib
+
+try:
+    import xmlrpclib
+except ImportError:
+    # Python 3
+    import xmlrpc.server as xmlrpclib    
+
 
 import pyblish.api
 import pyblish.plugin
