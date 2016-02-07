@@ -89,7 +89,6 @@ class Controller(object):
         results = list()
         plugins = [p for p in self.plugins if p.order >= 1]
         context = self.api.context()
-        print("publishing context: %s" % context[0].data)
 
         for result in pyblish.logic.process(
                 func=self.api.process,
@@ -316,8 +315,10 @@ def test_emit_implicit_conversion():
             count["#"] += 1
             context.create_instance("MyInstance")
 
-    def callback(instance, plugin, not_converted):
+    def callback(instance, plugin, context, not_converted):
         assert isinstance(instance, pyblish.api.Instance), (
+            "Passed instance was not implicitly converted")
+        assert isinstance(context, pyblish.api.Context), (
             "Passed instance was not implicitly converted")
         assert issubclass(plugin, pyblish.api.Collector), (
             "Passed plugin was not implicitly converted")
@@ -334,6 +335,8 @@ def test_emit_implicit_conversion():
     self.host.emit("myEvent",
                    instance="MyInstance",
                    plugin="MyCollector",
+                   context=None,
                    not_converted="Test")
 
     assert count["#"] == 11
+
