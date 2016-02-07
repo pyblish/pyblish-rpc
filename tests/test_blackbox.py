@@ -53,7 +53,6 @@ def teardown():
 
 def setup_empty():
     """Clear Pyblish of all possible external stimuli"""
-    pyblish.api.config["paths"][:] = []
     pyblish.api.deregister_all_paths()
     pyblish.api.deregister_all_plugins()
     pyblish.api.deregister_all_services()
