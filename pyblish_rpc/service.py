@@ -22,8 +22,10 @@ _log = logging.getLogger("pyblish-rpc")
 
 class RpcService(object):
     _count = 0
-    _instances = property(
-        lambda self: pyblish.lib.ItemList("name", self._context))
+    __instances = property(
+        lambda self: pyblish.lib.ItemList("id", self._context))
+    __plugins = property(
+        lambda self: pyblish.lib.ItemList("id", self._plugins))
 
     def __init__(self):
         self._context = None
@@ -85,7 +87,7 @@ class RpcService(object):
         """
 
         plugin_obj = self._plugin_from_name(plugin["name"])
-        instance_obj = (self._instances[instance["name"]]
+        instance_obj = (self.__instances[instance["name"]]
                         if instance is not None else None)
 
         result = pyblish.plugin.process(
@@ -98,7 +100,7 @@ class RpcService(object):
 
     def repair(self, plugin, instance=None):
         plugin_obj = self._plugin_from_name(plugin["name"])
-        instance_obj = (self._instances[instance["name"]]
+        instance_obj = (self.__instances[instance["name"]]
                         if instance is not None else None)
 
         result = pyblish.plugin.repair(
@@ -133,17 +135,14 @@ class RpcService(object):
 
         """
 
+        if "context" in kwargs:
+            kwargs["context"] = self._context
+
         if "instance" in kwargs:
-            for instance in self._context:
-                if instance.data["name"] == kwargs["instance"]:
-                    kwargs["instance"] = instance
-                    break
+            kwargs["instance"] = self.__instances[kwargs["instance"]]
 
         if "plugin" in kwargs:
-            for plugin in self._plugins:
-                if plugin.id == kwargs["plugin"]:
-                    kwargs["plugin"] = plugin
-                    break
+            kwargs["plugin"] = self.__plugins[kwargs["plugin"]]
 
         pyblish.api.emit(signal, **kwargs)
 
