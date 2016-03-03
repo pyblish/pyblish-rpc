@@ -512,6 +512,16 @@ class LongRunningValidator(pyblish.api.Validator):
         self.log.info("Good morning")
 
 
+class CollectSorting(pyblish.api.Collector):
+
+    order = pyblish.api.Collector.order + 0.499
+
+    def process(self, context):
+
+        context[:] = sorted(context,
+                            key=lambda instance: (instance.data("family"),
+                                                  instance.data("name")))
+
 instances = [
     {
         "name": "Peter01",
@@ -616,6 +626,7 @@ plugins = [
 
     LongRunningCollector,
     LongRunningValidator,
+    CollectSorting,
 ]
 
 pyblish.api.sort_plugins(plugins)
