@@ -499,6 +499,7 @@ class ValidateWithHyperlinks(pyblish.api.Validator):
 
 
 class LongRunningCollector(pyblish.api.Collector):
+    """I will take at least 2 seconds..."""
     def process(self, context):
         self.log.info("Sleeping for 2 seconds..")
         time.sleep(2)
@@ -506,21 +507,26 @@ class LongRunningCollector(pyblish.api.Collector):
 
 
 class LongRunningValidator(pyblish.api.Validator):
+    """I will take at least 2 seconds..."""
     def process(self, context):
         self.log.info("Sleeping for 2 seconds..")
         time.sleep(2)
         self.log.info("Good morning")
 
 
-class CollectSorting(pyblish.api.Collector):
-
-    order = pyblish.api.Collector.order + 0.499
+class RearrangingPlugin(pyblish.api.ContextPlugin):
+    """Sort plug-ins by family, and then reverse it"""
+    order = pyblish.api.CollectorOrder + 0.2
 
     def process(self, context):
+        self.log.info("Reversing instances in the context..")
+        context[:] = sorted(
+            context,
+            key=lambda i: i.data["family"],
+            reverse=True
+        )
+        self.log.info("Reversed!")
 
-        context[:] = sorted(context,
-                            key=lambda instance: (instance.data("family"),
-                                                  instance.data("name")))
 
 instances = [
     {
@@ -626,7 +632,8 @@ plugins = [
 
     LongRunningCollector,
     LongRunningValidator,
-    CollectSorting,
+
+    RearrangingPlugin
 ]
 
 pyblish.api.sort_plugins(plugins)
