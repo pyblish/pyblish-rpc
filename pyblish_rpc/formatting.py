@@ -123,14 +123,14 @@ def format_data(data):
 
     # These are the only data members
     # accessible from the client
-    return {key: data[key] for key in (
+    return dict((key, data[key]) for key in (
         "name",
         "label",
         "family",
         "families",
         "publish",
         ) if key in data
-    }
+    )
 
 
 def format_instance(instance):
