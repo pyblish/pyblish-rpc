@@ -1,6 +1,7 @@
 """Test mocking plug-ins"""
 
 import pyblish.api
+import pyblish.logic
 import pyblish.plugin
 
 import pyblish_rpc.service
@@ -14,8 +15,10 @@ def test_plugins(sleep):
     """Trigger all plug-ins"""
     context = pyblish.api.Context()
 
-    for plugin in pyblish_rpc.mocking.plugins:
-        pyblish.plugin.process(plugin, context)
+    for plugin, instance in pyblish.logic.Iterator(
+            pyblish_rpc.mocking.plugins, context):
+        print("Running %s" % plugin)
+        pyblish.plugin.process(plugin, context, instance)
 
 
 @mock.patch("time.sleep")
