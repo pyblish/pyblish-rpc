@@ -528,6 +528,15 @@ class RearrangingPlugin(pyblish.api.ContextPlugin):
         self.log.info("Reversed!")
 
 
+class InactiveInstanceCollectorPlugin(pyblish.api.InstancePlugin):
+    """Special case of an InstancePlugin running as a Collector"""
+    order = pyblish.api.CollectorOrder + 0.1
+    active = False
+
+    def process(self, instance):
+        raise TypeError("I shouldn't have run in the first place")
+
+
 instances = [
     {
         "name": "Peter01",
@@ -633,7 +642,8 @@ plugins = [
     LongRunningCollector,
     LongRunningValidator,
 
-    RearrangingPlugin
+    RearrangingPlugin,
+    InactiveInstanceCollectorPlugin
 ]
 
 pyblish.api.sort_plugins(plugins)
