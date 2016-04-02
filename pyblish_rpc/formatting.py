@@ -124,11 +124,23 @@ def format_data(data):
     # These are the only data members
     # accessible from the client
     return dict((key, data[key]) for key in (
+
+        # Essential data from each instance
         "name",
         "label",
         "family",
         "families",
         "publish",
+
+        # Provided by service.py
+        "host",
+        "port",
+        "user",
+        "connectTime",
+        "pyblishServerVersion",
+        "pyblishRPCVersion",
+        "pythonVersion"
+
         ) if key in data
     )
 
