@@ -45,7 +45,8 @@ def format_result(result):
         "duration": result["duration"]
     }
 
-    schema.validate(result, "result")
+    if os.getenv("PYBLISH_SAFE"):
+        schema.validate(result, "result")
 
     return result
 
@@ -89,7 +90,8 @@ def format_record(record):
     # Humanise output and conform to Exceptions
     record["message"] = str(record.pop("msg"))
 
-    schema.validate(record, "record")
+    if os.getenv("PYBLISH_SAFE"):
+        schema.validate(record, "record")
 
     return record
 
@@ -159,7 +161,6 @@ def format_instance(instance):
         name (str): Name of instance
         niceName (str, optional): Nice name of instance
         family (str): Name of compatible family
-        children (list, optional): Associated children
         data (dict, optional): Associated data
         publish (bool): Whether or not instance should be published
 
@@ -168,22 +169,15 @@ def format_instance(instance):
 
     """
 
-    children = list()
-    for child in instance:
-        try:
-            json.dumps(child)
-        except:
-            child = "Invalid"
-        children.append(child)
-
     instance = {
         "name": instance.name,
         "id": instance.id,
-        "children": children,
+        "children": list(),
         "data": format_data(instance.data)
     }
 
-    schema.validate(instance, "instance")
+    if os.getenv("PYBLISH_SAFE"):
+        schema.validate(instance, "instance")
 
     return instance
 
@@ -304,7 +298,8 @@ def format_plugin(plugin):
         "actions": [format_action(a) for a in plugin.actions],
     }
 
-    schema.validate(output, "plugin")
+    if os.getenv("PYBLISH_SAFE"):
+        schema.validate(output, "plugin")
 
     return output
 

@@ -1,6 +1,9 @@
 import os
 import sys
 
+# Set PYBLISH_SAFE to enable verbose checks
+os.environ['PYBLISH_SAFE'] = "1"
+
 # Expose pyblish-rpc to PYTHONPATH
 test_path = os.path.realpath(__file__)
 repo_dir = os.path.dirname(test_path)

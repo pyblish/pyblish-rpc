@@ -1,6 +1,9 @@
 import os
 import sys
 
+# Set PYBLISH_SAFE to enable verbose checks
+os.environ['PYBLISH_SAFE'] = "1"
+
 # Expose pyblish-rpc to PYTHONPATH
 path = os.path.dirname(__file__)
 package_path = os.path.join(path, "pyblish_rpc")
