@@ -159,7 +159,6 @@ def format_instance(instance):
         name (str): Name of instance
         niceName (str, optional): Nice name of instance
         family (str): Name of compatible family
-        children (list, optional): Associated children
         data (dict, optional): Associated data
         publish (bool): Whether or not instance should be published
 
@@ -168,18 +167,10 @@ def format_instance(instance):
 
     """
 
-    children = list()
-    for child in instance:
-        try:
-            json.dumps(child)
-        except:
-            child = "Invalid"
-        children.append(child)
-
     instance = {
         "name": instance.name,
         "id": instance.id,
-        "children": children,
+        "children": list(),
         "data": format_data(instance.data)
     }
 
