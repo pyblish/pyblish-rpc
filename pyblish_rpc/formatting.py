@@ -45,7 +45,8 @@ def format_result(result):
         "duration": result["duration"]
     }
 
-    schema.validate(result, "result")
+    if os.getenv("PYBLISH_SAFE"):
+        schema.validate(result, "result")
 
     return result
 
@@ -89,7 +90,8 @@ def format_record(record):
     # Humanise output and conform to Exceptions
     record["message"] = str(record.pop("msg"))
 
-    schema.validate(record, "record")
+    if os.getenv("PYBLISH_SAFE"):
+        schema.validate(record, "record")
 
     return record
 
@@ -174,7 +176,8 @@ def format_instance(instance):
         "data": format_data(instance.data)
     }
 
-    schema.validate(instance, "instance")
+    if os.getenv("PYBLISH_SAFE"):
+        schema.validate(instance, "instance")
 
     return instance
 
@@ -295,7 +298,8 @@ def format_plugin(plugin):
         "actions": [format_action(a) for a in plugin.actions],
     }
 
-    schema.validate(output, "plugin")
+    if os.getenv("PYBLISH_SAFE"):
+        schema.validate(output, "plugin")
 
     return output
 
