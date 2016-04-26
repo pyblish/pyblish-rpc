@@ -142,6 +142,7 @@ class ContextProxy(pyblish.api.Context):
     @classmethod
     def from_json(cls, context):
         self = cls()
+        self._id = context["id"]
 
         for instance in context["children"]:
             instance = InstanceProxy.from_json(instance)
@@ -169,6 +170,7 @@ class InstanceProxy(pyblish.api.Instance):
     @classmethod
     def from_json(cls, instance):
         self = cls(instance["name"])
+        self._id = instance["id"]
         copy = instance.copy()
         copy["data"] = copy.pop("data")
         self.__dict__.update(copy)

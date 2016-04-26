@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 import logging
 import inspect
 import traceback
@@ -190,6 +189,7 @@ def format_context(context):
         formatted.append(formatted_instance)
 
     return {
+        "id": context.id,
         "data": format_data(context.data),
         "children": formatted
     }
