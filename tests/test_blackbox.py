@@ -309,11 +309,14 @@ def test_emit_implicit_conversion():
     """Emitting via service implicitly converts instances to objects"""
 
     count = {"#": 0}
+    instances = []
 
     class MyCollector(pyblish.api.Collector):
         def process(self, context):
             count["#"] += 1
-            context.create_instance("MyInstance")
+
+            instance = context.create_instance("MyInstance")
+            instances.append(instance)
 
     def callback(instance, plugin, context, not_converted):
         assert isinstance(instance, pyblish.api.Instance), (
@@ -333,7 +336,7 @@ def test_emit_implicit_conversion():
     c.publish()
 
     self.host.emit("myEvent",
-                   instance="MyInstance",
+                   instance=instances[0].id,
                    plugin="MyCollector",
                    context=None,
                    not_converted="Test")
