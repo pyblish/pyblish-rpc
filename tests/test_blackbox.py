@@ -86,8 +86,8 @@ class Controller(object):
             results.append(result)
 
         return results
-
-    def publish(self):
+    
+    def _process(self, func):
         results = list()
         plugins = [
             p for p in self.plugins
@@ -97,12 +97,13 @@ class Controller(object):
         ]
 
         context = self.api.context()
+        print("Processing: %s, %s" % (context, plugins))
 
         for result in pyblish.logic.process(
-                func=self.api.process,
+                func=func,
                 plugins=plugins,
                 context=context):
-
+    
             if isinstance(result, pyblish.logic.TestFailed):
                 print("Stopped due to: %s" % result)
                 break
@@ -114,33 +115,12 @@ class Controller(object):
             results.append(result)
         return results
 
+    def publish(self):
+        self._process(self.api.process)
+
     @pyblish.lib.deprecated
     def repair(self):
-        results = list()
-        plugins = [
-            p for p in self.plugins
-            if not pyblish.lib.inrange(
-                number=p.order,
-                base=pyblish.api.CollectorOrder)
-        ]
-
-        context = self.api.context()
-
-        for result in pyblish.logic.process(
-                func=self.api.repair,
-                plugins=plugins,
-                context=context):
-
-            if isinstance(result, pyblish.logic.TestFailed):
-                print("Stopped due to: %s" % result)
-                break
-
-            if isinstance(result, Exception):
-                print("repair(): Got an unexpected exception: %s" % result)
-                break
-
-            results.append(result)
-        return results
+         self._process(self.api.repair)
 
 
 @with_setup(setup_empty)
@@ -174,14 +154,22 @@ def test_mock_client():
     c = Controller(port)
     c.reset()
 
-    # print("Host instances: %s" % list(i.id for i in c.api.context()))
-    # print("Original instances: %s" % list(i.id for i in instances))
+    assert_equals(
+        list(i.id for i in c.api.context()),
+        list(i.id for i in instances), (
+            "Local ids differs from Remote"))
+
+    assert_equals(
+        list(i.data["family"] for i in c.api.context()),
+        list(i.data["family"] for i in instances), (
+            "Local instances differs from Remote"))
 
     plugins = c.api.discover()
 
     assert SelectInstances.id in [p.id for p in plugins]
     assert ValidateInstances.id in [p.id for p in plugins]
-    assert ValidateInstances.id in [p.id for p in c.plugins]
+    assert ValidateInstances.id in [p.id for p in c.plugins], (
+        "Plug-in not available in the host")
 
     c.publish()
 
