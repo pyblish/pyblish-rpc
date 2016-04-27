@@ -4,6 +4,7 @@ Changelog
 Version 0.3.0
 -------------
 
+- Performance: Up to 200x performance increase due to reduced data serialisation and transfers. (#23)
 - Enhancement: More robust handling of items via ID's (#181)
 
 Version 0.2.0
