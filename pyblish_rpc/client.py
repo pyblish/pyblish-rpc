@@ -155,8 +155,10 @@ class ContextProxy(pyblish.api.Context):
 
     def to_json(self):
         return {
+            "name": "Context",
+            "id": self.id,
+            "data": self.data,
             "children": list(self),
-            "data": self.data
         }
 
 
