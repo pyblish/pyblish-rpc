@@ -183,7 +183,7 @@ def format_instance(instance):
 
 def format_context(context):
     return {
-        "name": "Context",
+        "name": context.name,
         "id": context.id,
         "data": format_data(context.data),
         "children": list(format_instance(i) for i in context)
