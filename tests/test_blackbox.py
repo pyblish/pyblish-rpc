@@ -6,6 +6,7 @@ import pyblish_rpc.client
 import pyblish_rpc.server
 
 import pyblish.api
+import pyblish.lib
 import pyblish.logic
 
 from nose.tools import (
@@ -71,7 +72,12 @@ class Controller(object):
         self.plugins = self.api.discover()
 
         results = list()
-        plugins = [p for p in self.plugins if p.order < 1]
+        plugins = [
+            p for p in self.plugins
+            if pyblish.lib.inrange(
+                number=p.order,
+                base=pyblish.api.CollectorOrder)
+        ]
 
         for result in pyblish.logic.process(
                 func=self.api.process,
@@ -79,15 +85,17 @@ class Controller(object):
                 context=self.api.context):
             results.append(result)
 
-        try:
-            print(result)
-        except:
-            pass
         return results
 
     def publish(self):
         results = list()
-        plugins = [p for p in self.plugins if p.order >= 1]
+        plugins = [
+            p for p in self.plugins
+            if not pyblish.lib.inrange(
+                number=p.order,
+                base=pyblish.api.CollectorOrder)
+        ]
+
         context = self.api.context()
 
         for result in pyblish.logic.process(
@@ -100,7 +108,35 @@ class Controller(object):
                 break
 
             if isinstance(result, Exception):
-                print("Got an exception: %s" % result)
+                print("publish(): Got an unexpected exception: %s" % result)
+                break
+
+            results.append(result)
+        return results
+
+    @pyblish.lib.deprecated
+    def repair(self):
+        results = list()
+        plugins = [
+            p for p in self.plugins
+            if not pyblish.lib.inrange(
+                number=p.order,
+                base=pyblish.api.CollectorOrder)
+        ]
+
+        context = self.api.context()
+
+        for result in pyblish.logic.process(
+                func=self.api.repair,
+                plugins=plugins,
+                context=context):
+
+            if isinstance(result, pyblish.logic.TestFailed):
+                print("Stopped due to: %s" % result)
+                break
+
+            if isinstance(result, Exception):
+                print("repair(): Got an unexpected exception: %s" % result)
                 break
 
             results.append(result)
@@ -111,6 +147,7 @@ class Controller(object):
 def test_mock_client():
     """A mock client works fine"""
     count = {"#": 0}
+    instances = list()
 
     assert_equals(pyblish.api.registered_plugins(), [])
 
@@ -118,6 +155,7 @@ def test_mock_client():
         def process(self, context):
             print("Processing %s" % type(self).__name__)
             instance = context.create_instance("MyInstance")
+            instances.append(instance)
             instance.set_data("family", "myFamily")
             instance.data["marcus"] = "Marcus"
             count["#"] += 1
@@ -136,11 +174,14 @@ def test_mock_client():
     c = Controller(port)
     c.reset()
 
+    # print("Host instances: %s" % list(i.id for i in c.api.context()))
+    # print("Original instances: %s" % list(i.id for i in instances))
+
     plugins = c.api.discover()
 
-    assert "SelectInstances" in [p.name for p in plugins]
-    assert "ValidateInstances" in [p.name for p in plugins]
-    assert "ValidateInstances" in [p.name for p in c.plugins]
+    assert SelectInstances.id in [p.id for p in plugins]
+    assert ValidateInstances.id in [p.id for p in plugins]
+    assert ValidateInstances.id in [p.id for p in c.plugins]
 
     c.publish()
 
@@ -159,7 +200,7 @@ def test_ping():
 @with_setup(setup_empty)
 def test_logic():
     """Logic works well"""
-    count = {"#": 0}
+    count = {"#": 0, "failed": False}
 
     assert_equals(pyblish.api.registered_plugins(), [])
 
@@ -181,6 +222,7 @@ def test_logic():
             print("Processing: %s" % type(self).__name__)
             count["#"] += 10
 
+            count["failed"] = True
             assert False, "I was programmed to fail"
 
     class DontRun1(pyblish.api.Validator):
@@ -211,24 +253,15 @@ def test_logic():
     pyblish.api.register_plugin(DontRun2)
     pyblish.api.register_plugin(DontRun3)
 
-    test_failed = False
-
-    self.host.reset()
-    for result in pyblish.logic.process(
-            func=self.host.process,
-            plugins=self.host.discover,
-            context=self.host.context):
-
-        if isinstance(result, pyblish.logic.TestFailed):
-            print("Stopped due to: %s" % result)
-            test_failed = True
-            break
+    c = Controller(port)
+    c.reset()
+    c.publish()
 
     context = self.host.context()
     assert context[0].name in ["A", "B"]
     assert context[1].name in ["A", "B"]
     assert_equals(count["#"], 21)
-    assert_true(test_failed)
+    assert_true(count["failed"])
 
 
 @with_setup(setup_empty)
@@ -239,6 +272,7 @@ def test_repair():
 
     class SelectInstance(pyblish.api.Selector):
         def process(self, context):
+            print("Running %s" % type(self))
             instance = context.create_instance("MyInstance")
             instance.set_data("family", "MyFamily")
 
@@ -253,30 +287,13 @@ def test_repair():
     for plugin in (SelectInstance, ValidateInstance):
         pyblish.api.register_plugin(plugin)
 
-    results = list()
-    self.host.reset()
-    for result in pyblish.logic.process(
-            func=self.host.process,
-            plugins=self.host.discover,
-            context=self.host.context):
-
-        if isinstance(result, pyblish.logic.TestFailed):
-            assert str(result) == "Broken"
-
-        results.append(result)
+    c = Controller(port)
+    c.reset()
+    c.publish()
 
     assert_true(_data["broken"])
 
-    repair = list()
-    for result in results:
-        if result["error"]:
-            repair.append(result["plugin"])
-
-    for result in pyblish.logic.process(
-            func=self.host.repair,
-            plugins=self.host.discover,
-            context=self.host.context):
-        pass
+    c.repair()
 
     assert_false(_data["broken"])
 
@@ -309,11 +326,14 @@ def test_emit_implicit_conversion():
     """Emitting via service implicitly converts instances to objects"""
 
     count = {"#": 0}
+    instances = []
 
     class MyCollector(pyblish.api.Collector):
         def process(self, context):
             count["#"] += 1
-            context.create_instance("MyInstance")
+
+            instance = context.create_instance("MyInstance")
+            instances.append(instance)
 
     def callback(instance, plugin, context, not_converted):
         assert isinstance(instance, pyblish.api.Instance), (
@@ -333,10 +353,9 @@ def test_emit_implicit_conversion():
     c.publish()
 
     self.host.emit("myEvent",
-                   instance="MyInstance",
-                   plugin="MyCollector",
+                   instance=instances[0].id,
+                   plugin=MyCollector.id,
                    context=None,
                    not_converted="Test")
 
     assert count["#"] == 11
-

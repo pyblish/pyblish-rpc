@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 import logging
 import inspect
 import traceback
@@ -172,8 +171,8 @@ def format_instance(instance):
     instance = {
         "name": instance.name,
         "id": instance.id,
+        "data": format_data(instance.data),
         "children": list(),
-        "data": format_data(instance.data)
     }
 
     if os.getenv("PYBLISH_SAFE"):
@@ -183,15 +182,11 @@ def format_instance(instance):
 
 
 def format_context(context):
-    formatted = []
-
-    for instance_ in context:
-        formatted_instance = format_instance(instance_)
-        formatted.append(formatted_instance)
-
     return {
+        "name": "Context",
+        "id": context.id,
         "data": format_data(context.data),
-        "children": formatted
+        "children": list(format_instance(i) for i in context)
     }
 
 
