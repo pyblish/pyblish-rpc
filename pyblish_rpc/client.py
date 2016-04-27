@@ -143,21 +143,20 @@ class ContextProxy(pyblish.api.Context):
     def from_json(cls, context):
         self = cls()
         self._id = context["id"]
-
-        for instance in context["children"]:
-            instance = InstanceProxy.from_json(instance)
-            self.add(instance)
-
-        self.data = context.get("data", {})
-        self.data["pyblishClientVersion"] = pyblish.api.version
+        self._data = context["data"]
+        self[:] = list(InstanceProxy.from_json(i)
+                       for i in context["children"])
+        
+        # Attach metadata
+        self._data["pyblishClientVersion"] = pyblish.api.version
 
         return self
 
     def to_json(self):
         return {
-            "name": "Context",
+            "name": self.name,
             "id": self.id,
-            "data": self.data,
+            "data": dict(self.data),  # Convert pyblish.plugin._Dict object
             "children": list(self),
         }
 
@@ -173,17 +172,16 @@ class InstanceProxy(pyblish.api.Instance):
     def from_json(cls, instance):
         self = cls(instance["name"])
         self._id = instance["id"]
-        copy = instance.copy()
-        copy["data"] = copy.pop("data")
-        self.__dict__.update(copy)
+        self._data = instance["data"]
         self[:] = instance["children"]
+
         return self
 
     def to_json(self):
         return {
             "name": self.name,
             "id": self.id,
-            "data": self.data,
+            "data": dict(self.data),
             "children": list(self),
         }
 
