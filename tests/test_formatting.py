@@ -1,3 +1,4 @@
+import json
 import logging
 
 import pyblish.api
@@ -12,6 +13,9 @@ def test_instance():
 
     instance = formatting.format_instance(instance)
     schema.validate(instance, "instance")
+    
+    # Test JSON-compatibility
+    json.dumps(instance)
 
 
 def test_context():
@@ -23,6 +27,9 @@ def test_context():
 
     context = formatting.format_context(context)
     schema.validate(context, "context")
+
+    # Test JSON-compatibility
+    json.dumps(context)
 
 
 def test_record():
@@ -41,6 +48,9 @@ def test_record():
     record = formatting.format_record(record)
     schema.validate(record, "record")
 
+    # Test JSON-compatibility
+    json.dumps(record)
+
 
 def test_error():
     """Formatting of exceptions works well"""
@@ -48,6 +58,9 @@ def test_error():
 
     error = formatting.format_error(error)
     schema.validate(error, "error")
+
+    # Test JSON-compatibility
+    json.dumps(error)
 
 
 def test_result():
@@ -82,6 +95,9 @@ def test_result():
 
     result = formatting.format_result(result)
     schema.validate(result, "result")
+    
+    # Test JSON-compatibility
+    json.dumps(result)
 
 
 def test_plugin():
@@ -97,3 +113,7 @@ def test_plugin():
     plugin = MyPlugin()
     plugin = formatting.format_plugin(MyPlugin)
     schema.validate(plugin, "plugin")
+
+    # Test JSON-compatibility
+    json.dumps(plugin)
+
