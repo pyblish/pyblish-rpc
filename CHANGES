@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 0.3.0
+-------------
+
+- Enhancement: More robust handling of items via ID's (#181)
+
 Version 0.2.0
 -------------
 
