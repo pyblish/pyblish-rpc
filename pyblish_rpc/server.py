@@ -8,20 +8,30 @@ Attributes:
 
 
 import sys
-# import base64
 import threading
-import SocketServer
-from SimpleXMLRPCServer import (
-    SimpleXMLRPCServer,
-    SimpleXMLRPCRequestHandler
-)
+
+try:
+    from SimpleXMLRPCServer import (
+        SimpleXMLRPCServer,
+        SimpleXMLRPCRequestHandler
+    )
+except ImportError:
+    from xmlrpc.server import (
+        SimpleXMLRPCServer,
+        SimpleXMLRPCRequestHandler
+    )
+
+try:
+    import SocketServer as socketserver
+except ImportError:
+    # Python 3
+    import socketserver
 
 import pyblish.api
 import pyblish.lib
 import pyblish.logic
 
-import pyblish_rpc
-import service as service_
+from . import dispatch_wrapper, service as service_
 
 self = sys.modules[__name__]
 self.current_server_thread = None
@@ -32,7 +42,7 @@ def default_wrapper(func, *args, **kwargs):
     return func(*args, **kwargs)
 
 
-class RpcServer(SocketServer.ThreadingMixIn, SimpleXMLRPCServer):
+class RpcServer(socketserver.ThreadingMixIn, SimpleXMLRPCServer):
     """The Pyblish RPC Server
 
     Support multiple requests simultaneously. This is important,
@@ -74,14 +84,14 @@ class RpcServer(SocketServer.ThreadingMixIn, SimpleXMLRPCServer):
         return True
 
     def _dispatch(self, *args):
-        wrapper = pyblish_rpc.dispatch_wrapper() or default_wrapper
+        wrapper = dispatch_wrapper() or default_wrapper
         return wrapper(SimpleXMLRPCServer._dispatch,
                        self, *args)
 
 
 def kill():
     """Shutdown a running server"""
-    print "Shutting down.."
+    print("Shutting down..")
     return self.current_server.shutdown()
 
 

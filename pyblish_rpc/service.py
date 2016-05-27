@@ -13,9 +13,7 @@ import pyblish.lib
 import pyblish.plugin
 
 # Local Library
-import version
-import mocking
-import formatting
+from . import version, mocking, formatting
 
 _log = logging.getLogger("pyblish-rpc")
 
@@ -65,8 +63,8 @@ class RpcService(object):
                            "user": getpass.getuser(),
                            "connectTime": pyblish.lib.time(),
                            "pyblishServerVersion": pyblish.version,
-                           "pyblishRPCVersion": version.version,
-                           "pythonVersion": sys.version}.iteritems():
+                           "pyblishRPCVersion": version,
+                           "pythonVersion": sys.version}.items():
 
             self._context.data[key] = value
 

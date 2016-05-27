@@ -1,6 +1,7 @@
 import os
 import time
 import subprocess
+
 import pyblish.api
 
 
@@ -46,7 +47,7 @@ class SelectInstances(pyblish.api.Selector):
             self.log.info("Selecting: %s" % name)
             instance = context.create_instance(name)
 
-            for key, value in data.iteritems():
+            for key, value in data.items():
                 instance.set_data(key, value)
 
 
@@ -60,7 +61,7 @@ class SelectDiInstances(pyblish.api.Selector):
         self.log.info("Selecting: %s" % name)
         instance = context.create_instance(name)
 
-        for key, value in data.iteritems():
+        for key, value in data.items():
             instance.set_data(key, value)
 
 

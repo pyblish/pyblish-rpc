@@ -4,6 +4,7 @@ import sys
 
 import pyblish_rpc.client
 import pyblish_rpc.server
+from pyblish_rpc.vendor import six
 
 import pyblish.api
 import pyblish.lib
@@ -12,9 +13,9 @@ import pyblish.logic
 from nose.tools import (
     with_setup,
     assert_equals,
-    assert_false,
     assert_true
 )
+
 
 server = None
 thread = None
@@ -64,14 +65,57 @@ def setup_empty():
 class Controller(object):
     """A minimal Pyblish QML controller"""
     def __init__(self, port):
-        self.api = pyblish_rpc.client.Proxy(port)
+        self.host = pyblish_rpc.client.Proxy(port)
         self.plugins = list()
 
-    def reset(self):
-        self.api.reset()
-        self.plugins = self.api.discover()
+    def run(self, plugins):
+        test = pyblish.logic.registered_test()
+        state = {
+            "nextOrder": None,
+            "ordersWithError": set()
+        }
 
         results = list()
+
+        for plugin, instance in pyblish.logic.Iterator(plugins,
+                                                       self.host.context()):
+            print("Processing: %s, %s" % (plugin, instance))
+
+            if not plugin.active:
+                continue
+
+            if instance is not None and instance.data.get("publish") is False:
+                continue
+
+            state["nextOrder"] = plugin.order
+
+            if test(**state):
+                print("Stopped due to %s" % test(**state))
+                break
+
+            try:
+                result = self.host.process(plugin,
+                                           self.host.context(),
+                                           instance)
+
+            except Exception:
+                break
+
+            else:
+                # Make note of the order at which the
+                # potential error error occured.
+                has_error = result["error"] is not None
+                if has_error:
+                    state["ordersWithError"].add(plugin.order)
+
+            results.append(result)
+
+        return results
+
+    def reset(self):
+        self.host.reset()
+        self.plugins = self.host.discover()
+
         plugins = [
             p for p in self.plugins
             if pyblish.lib.inrange(
@@ -79,16 +123,9 @@ class Controller(object):
                 base=pyblish.api.CollectorOrder)
         ]
 
-        for result in pyblish.logic.process(
-                func=self.api.process,
-                plugins=plugins,
-                context=self.api.context):
-            results.append(result)
+        return self.run(plugins)
 
-        return results
-    
-    def _process(self, func):
-        results = list()
+    def publish(self):
         plugins = [
             p for p in self.plugins
             if not pyblish.lib.inrange(
@@ -96,31 +133,7 @@ class Controller(object):
                 base=pyblish.api.CollectorOrder)
         ]
 
-        context = self.api.context()
-        print("Processing: %s, %s" % (context, plugins))
-
-        for result in pyblish.logic.process(
-                func=func,
-                plugins=plugins,
-                context=context):
-    
-            if isinstance(result, pyblish.logic.TestFailed):
-                print("Stopped due to: %s" % result)
-                break
-
-            if isinstance(result, Exception):
-                print("publish(): Got an unexpected exception: %s" % result)
-                break
-
-            results.append(result)
-        return results
-
-    def publish(self):
-        self._process(self.api.process)
-
-    @pyblish.lib.deprecated
-    def repair(self):
-         self._process(self.api.repair)
+        return self.run(plugins)
 
 
 @with_setup(setup_empty)
@@ -153,18 +166,19 @@ def test_mock_client():
 
     c = Controller(port)
     c.reset()
+    print("Context after reset: %s" % c.host.context())
 
     assert_equals(
-        list(i.id for i in c.api.context()),
+        list(i.id for i in c.host.context()),
         list(i.id for i in instances), (
             "Local ids differs from Remote"))
 
     assert_equals(
-        list(i.data["family"] for i in c.api.context()),
+        list(i.data["family"] for i in c.host.context()),
         list(i.data["family"] for i in instances), (
             "Local instances differs from Remote"))
 
-    plugins = c.api.discover()
+    plugins = c.host.discover()
 
     assert SelectInstances.id in [p.id for p in plugins]
     assert ValidateInstances.id in [p.id for p in plugins]
@@ -173,10 +187,10 @@ def test_mock_client():
 
     c.publish()
 
-    instance = c.api.context()[0]
+    instance = c.host.context()[0]
     assert_equals(instance.name, "MyInstance")
     assert_equals(count["#"], 2)
-    assert_true(c.api.stats()["totalRequestCount"] > 0)
+    assert_true(c.host.stats()["totalRequestCount"] > 0)
 
 
 def test_ping():
@@ -253,40 +267,6 @@ def test_logic():
 
 
 @with_setup(setup_empty)
-def test_repair():
-    """Repairing with DI works well"""
-
-    _data = {}
-
-    class SelectInstance(pyblish.api.Selector):
-        def process(self, context):
-            print("Running %s" % type(self))
-            instance = context.create_instance("MyInstance")
-            instance.set_data("family", "MyFamily")
-
-    class ValidateInstance(pyblish.api.Validator):
-        def process(self, instance):
-            _data["broken"] = True
-            assert False, "Broken"
-
-        def repair(self, instance):
-            _data["broken"] = False
-
-    for plugin in (SelectInstance, ValidateInstance):
-        pyblish.api.register_plugin(plugin)
-
-    c = Controller(port)
-    c.reset()
-    c.publish()
-
-    assert_true(_data["broken"])
-
-    c.repair()
-
-    assert_false(_data["broken"])
-
-
-@with_setup(setup_empty)
 def test_logging_nonstring():
     """Logging a non-string message is ok"""
 
@@ -330,7 +310,7 @@ def test_emit_implicit_conversion():
             "Passed instance was not implicitly converted")
         assert issubclass(plugin, pyblish.api.Collector), (
             "Passed plugin was not implicitly converted")
-        assert isinstance(not_converted, basestring)
+        assert isinstance(not_converted, six.string_types)
         count["#"] += 10
 
     pyblish.api.register_callback("myEvent", callback)

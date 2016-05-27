@@ -15,6 +15,8 @@ import json
 
 import jsonschema
 
+from .vendor import six
+
 cache = {}
 module_dir = os.path.dirname(__file__)
 schema_dir = os.path.join(module_dir, "schema")
@@ -33,7 +35,7 @@ def load_all():
 
 
 def validate(data, schema):
-    if isinstance(schema, basestring):
+    if isinstance(schema, six.string_types):
         schema = cache[schema + ".json"]
 
     resolver = jsonschema.RefResolver(

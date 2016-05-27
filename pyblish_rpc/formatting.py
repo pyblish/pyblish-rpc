@@ -4,7 +4,7 @@ import logging
 import inspect
 import traceback
 
-import schema
+from . import schema
 
 import pyblish.lib
 import pyblish.plugin

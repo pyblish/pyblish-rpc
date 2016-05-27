@@ -32,6 +32,6 @@ def setup():
 def teardown():
     """Shutdown module-level server"""
     self.client.kill()
-    print "Killed"
+    print("Killed")
     self.process.wait()
     assert not process.poll()
