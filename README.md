@@ -6,3 +6,9 @@
 [![Coverage Status](https://coveralls.io/repos/pyblish/pyblish-rpc/badge.svg)](https://coveralls.io/r/pyblish/pyblish-rpc)
 
 An RPC interface to Pyblish.
+
+### IMPORTANT
+
+This project is winding down in favour of a merger into the [pyblish-qml]() project.
+
+See [this forum post](http://forums.pyblish.com/t/big-merge/238) for details.
